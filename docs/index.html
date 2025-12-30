@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Hosting MCP Server - Documentation</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0ea5e9;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .tool-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .tool-name {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--secondary);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-desc {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .quick-start {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin-bottom: 3rem;
+        }
+
+        .quick-start h2 {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .code-block {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .code-block code {
+            color: var(--text);
+        }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .feature span {
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 9999px;
+            color: var(--success);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">📁</div>
+            <h1>File Hosting MCP Server</h1>
+            <p class="tagline">A lightweight Model Context Protocol server for file storage operations</p>
+            <span class="version-badge">v1.0.0</span>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                MCP Compatible
+            </div>
+        </header>
+
+        <section class="features">
+            <div class="feature">
+                <span class="feature-icon">⚡</span>
+                <span>Fast & Lightweight</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔒</span>
+                <span>Secure by Default</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📦</span>
+                <span>Zero Dependencies*</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔧</span>
+                <span>Easy Configuration</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📄</span>
+                <span>All File Types</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🌐</span>
+                <span>Cross-Platform</span>
+            </div>
+        </section>
+
+        <h2 class="section-title">📚 Documentation</h2>
+        <div class="grid">
+            <a href="getting-started.md" class="card">
+                <div class="card-icon">🚀</div>
+                <h3>Getting Started</h3>
+                <p>Installation, setup, and your first file upload in minutes.</p>
+            </a>
+            <a href="api-reference.md" class="card">
+                <div class="card-icon">📖</div>
+                <h3>API Reference</h3>
+                <p>Complete documentation of all tools, parameters, and responses.</p>
+            </a>
+            <a href="configuration.md" class="card">
+                <div class="card-icon">⚙️</div>
+                <h3>Configuration</h3>
+                <p>Environment variables, storage options, and customization.</p>
+            </a>
+            <a href="security.md" class="card">
+                <div class="card-icon">🔐</div>
+                <h3>Security</h3>
+                <p>Security features, best practices, and considerations.</p>
+            </a>
+            <a href="examples.md" class="card">
+                <div class="card-icon">💡</div>
+                <h3>Examples</h3>
+                <p>Real-world usage examples and common patterns.</p>
+            </a>
+            <a href="troubleshooting.md" class="card">
+                <div class="card-icon">🔧</div>
+                <h3>Troubleshooting</h3>
+                <p>Common issues, error messages, and solutions.</p>
+            </a>
+        </div>
+
+        <h2 class="section-title">🛠️ Available Tools</h2>
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-name">upload_file</div>
+                <p class="tool-desc">Upload files to storage with UTF-8 or base64 encoding</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-name">download_file</div>
+                <p class="tool-desc">Download and read files from storage</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-name">list_files</div>
+                <p class="tool-desc">List all files and directories in storage</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-name">delete_file</div>
+                <p class="tool-desc">Remove files from storage permanently</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-name">get_file_info</div>
+                <p class="tool-desc">Get file metadata like size and dates</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-name">create_directory</div>
+                <p class="tool-desc">Create subdirectories for organization</p>
+            </div>
+        </div>
+
+        <section class="quick-start">
+            <h2>⚡ Quick Start</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-content">
+                    <h4>Install Dependencies</h4>
+                    <p>Clone the repository and install packages</p>
+                    <div class="code-block">
+                        <code>npm install</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-content">
+                    <h4>Build the Server</h4>
+                    <p>Compile TypeScript to JavaScript</p>
+                    <div class="code-block">
+                        <code>npm run build</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-content">
+                    <h4>Configure Your MCP Client</h4>
+                    <p>Add to your Claude Desktop or MCP client configuration</p>
+                    <div class="code-block">
+                        <code>{
+  "mcpServers": {
+    "filehosting": {
+      "command": "node",
+      "args": ["path/to/dist/index.js"],
+      "env": {
+        "STORAGE_DIR": "/path/to/storage"
+      }
+    }
+  }
+}</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-content">
+                    <h4>Start Using!</h4>
+                    <p>The file hosting tools are now available in your MCP client</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>File Hosting MCP Server &copy; 2025</p>
+            <p>Built with the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a></p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">* Only requires @modelcontextprotocol/sdk</p>
+        </footer>
+    </div>
+</body>
+</html>
