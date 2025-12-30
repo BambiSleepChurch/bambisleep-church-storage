@@ -4,10 +4,10 @@ This directory contains systemd service files for running BRANDYFICATION as a sy
 
 ## Services
 
-| Service | Description | Port |
-|---------|-------------|------|
-| `brandyfication-mcp.service` | MCP file hosting server | stdio |
-| `brandyfication-agent.service` | Web frontend agent | 3000 |
+| Service                        | Description            | Port  |
+| ------------------------------ | ---------------------- | ----- |
+| `brandyfication-mcp.service`   | MCP file hosting server | stdio |
+| `brandyfication-agent.service` | Web frontend agent     | 3000  |
 
 ## Quick Install
 
@@ -64,21 +64,25 @@ sudo systemctl start brandyfication-agent
 ## Commands
 
 ### Start Services
+
 ```bash
 sudo systemctl start brandyfication-agent
 ```
 
 ### Stop Services
+
 ```bash
 sudo systemctl stop brandyfication-agent
 ```
 
 ### Check Status
+
 ```bash
 sudo systemctl status brandyfication-agent
 ```
 
 ### View Logs
+
 ```bash
 # Follow logs
 sudo journalctl -u brandyfication-agent -f
@@ -91,6 +95,7 @@ sudo journalctl -u brandyfication-agent -b
 ```
 
 ### Restart
+
 ```bash
 sudo systemctl restart brandyfication-agent
 ```
@@ -100,17 +105,20 @@ sudo systemctl restart brandyfication-agent
 ### Change Port
 
 Edit the service file:
+
 ```bash
 sudo systemctl edit brandyfication-agent
 ```
 
 Add:
+
 ```ini
 [Service]
 Environment=PORT=8080
 ```
 
 Then restart:
+
 ```bash
 sudo systemctl restart brandyfication-agent
 ```
@@ -118,11 +126,13 @@ sudo systemctl restart brandyfication-agent
 ### Change Storage Location
 
 Edit the service file:
+
 ```bash
 sudo systemctl edit brandyfication-agent
 ```
 
 Add:
+
 ```ini
 [Service]
 Environment=STORAGE_DIR=/custom/path/storage

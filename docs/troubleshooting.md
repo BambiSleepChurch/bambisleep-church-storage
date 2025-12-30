@@ -250,7 +250,7 @@ node --max-old-space-size=4096 dist/index.js
 
 ## Common Error Messages
 
-### "Unknown tool: <name>"
+### "Unknown tool: `<name>`"
 
 **Cause:** Requesting a tool that doesn't exist.
 

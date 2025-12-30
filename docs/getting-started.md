@@ -57,7 +57,7 @@ npm start
 
 You should see output similar to:
 
-```
+```text
 File Hosting MCP Server running on stdio
 Storage directory: /path/to/storage
 ```
@@ -178,7 +178,7 @@ Ask:
 
 After installation, your project should look like this:
 
-```
+```text
 filehosting-mcp-server/
 ├── dist/               # Compiled JavaScript (after build)
 │   └── index.js

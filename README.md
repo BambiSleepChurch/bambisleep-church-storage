@@ -14,7 +14,7 @@ A Model Context Protocol (MCP) server for file hosting with organized IMAGES and
 
 ## Storage Structure
 
-```
+```text
 BRANDYFICATION/
 ├── IMAGES/     # All image files
 ├── VIDEOS/     # MP4 and GIF video files

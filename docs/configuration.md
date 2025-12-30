@@ -124,7 +124,7 @@ Add to your VS Code `settings.json` or workspace configuration:
 
 The storage directory is flat by default, but you can create subdirectories:
 
-```
+```text
 storage/
 ├── documents/
 │   ├── report.pdf

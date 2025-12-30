@@ -22,8 +22,9 @@ This ensures that:
 - `subdir/file.txt` becomes `file.txt` (in storage dir)
 
 **Example attacks that are blocked:**
+
 | Input | Result |
-|-------|--------|
+| ----- | ------ |
 | `../secret.txt` | `storage/secret.txt` |
 | `../../etc/passwd` | `storage/passwd` |
 | `/etc/shadow` | `storage/shadow` |
