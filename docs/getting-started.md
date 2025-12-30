@@ -1,6 +1,13 @@
-# Getting Started
+# Getting Started with BRANDYFICATION
 
-This guide will help you install, configure, and start using the File Hosting MCP Server.
+This guide will help you install, configure, and start using the BRANDYFICATION MCP File Hosting Server.
+
+## What is BRANDYFICATION?
+
+BRANDYFICATION is an MCP (Model Context Protocol) server designed for storing and managing images and videos. Files are automatically organized into dedicated folders:
+
+- **BRANDYFICATION/IMAGES/** - All image files (20+ formats supported)
+- **BRANDYFICATION/VIDEOS/** - Video files (MP4, GIF)
 
 ## Prerequisites
 
@@ -12,16 +19,11 @@ Before you begin, ensure you have the following installed:
 
 ## Installation
 
-### Step 1: Clone or Download
-
-If you haven't already, obtain the server files:
+### Step 1: Clone the Repository
 
 ```bash
-# If using git
-git clone <repository-url>
-cd filehosting-mcp-server
-
-# Or download and extract the ZIP file
+git clone https://github.com/BambiSleepChurch/bambisleep-church-storage.git
+cd bambisleep-church-storage
 ```
 
 ### Step 2: Install Dependencies
@@ -58,8 +60,10 @@ npm start
 You should see output similar to:
 
 ```text
-File Hosting MCP Server running on stdio
-Storage directory: /path/to/storage
+BRANDYFICATION File Hosting MCP Server running on stdio
+Storage: /path/to/BRANDYFICATION
+  ├── IMAGES: /path/to/BRANDYFICATION/IMAGES
+  └── VIDEOS: /path/to/BRANDYFICATION/VIDEOS
 ```
 
 Press `Ctrl+C` to stop the server.
@@ -68,30 +72,30 @@ Press `Ctrl+C` to stop the server.
 
 ### Environment Variables
 
-| Variable      | Description                      | Default     |
-| ------------- | -------------------------------- | ----------- |
-| `STORAGE_DIR` | Directory where files are stored | `./storage` |
+| Variable      | Description                            | Default           |
+| ------------- | -------------------------------------- | ----------------- |
+| `STORAGE_DIR` | Root directory for BRANDYFICATION storage | `./BRANDYFICATION` |
 
 ### Setting the Storage Directory
 
 **On Windows (PowerShell):**
 
 ```powershell
-$env:STORAGE_DIR = "C:\myfiles\storage"
+$env:STORAGE_DIR = "C:\myfiles\BRANDYFICATION"
 npm start
 ```
 
 **On Windows (CMD):**
 
 ```cmd
-set STORAGE_DIR=C:\myfiles\storage
+set STORAGE_DIR=C:\myfiles\BRANDYFICATION
 npm start
 ```
 
 **On macOS/Linux:**
 
 ```bash
-STORAGE_DIR=/home/user/storage npm start
+STORAGE_DIR=/home/user/BRANDYFICATION npm start
 ```
 
 ## MCP Client Configuration
@@ -105,11 +109,11 @@ STORAGE_DIR=/home/user/storage npm start
 ```json
 {
   "mcpServers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
-      "args": ["C:/path/to/filehosting-mcp-server/dist/index.js"],
+      "args": ["C:/path/to/bambisleep-church-storage/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "C:/path/to/storage"
+        "STORAGE_DIR": "C:/path/to/BRANDYFICATION"
       }
     }
   }
@@ -125,82 +129,110 @@ Add to your VS Code settings or MCP configuration:
 ```json
 {
   "mcp.servers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
       "args": ["${workspaceFolder}/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "${workspaceFolder}/storage"
+        "STORAGE_DIR": "${workspaceFolder}/BRANDYFICATION"
       }
     }
   }
 }
 ```
 
-## Your First File Upload
+## Your First Upload
 
-Once configured, you can use the file hosting tools through your MCP client:
+Once configured, you can use the BRANDYFICATION tools through your MCP client:
 
-### Upload a Text File
+### Upload an Image
 
 Ask your AI assistant:
 
-> "Upload a file called hello.txt with the content 'Hello, World!'"
+> "Upload this image as logo.png"
 
-The assistant will use the `upload_file` tool:
+The assistant will use the `upload_image` tool:
 
 ```json
 {
-  "filename": "hello.txt",
-  "content": "Hello, World!",
-  "encoding": "utf8"
+  "filename": "logo.png",
+  "content": "<base64-encoded-image>"
 }
 ```
 
-### List Files
+Result: Image saved to `BRANDYFICATION/IMAGES/logo.png`
+
+### Upload a Video
 
 Ask:
 
-> "What files are in storage?"
+> "Upload this video as intro.mp4"
+
+Result: Video saved to `BRANDYFICATION/VIDEOS/intro.mp4`
+
+### List Images
+
+Ask:
+
+> "What images do I have stored?"
+
+### List Videos
+
+Ask:
+
+> "Show me all videos in storage"
 
 ### Download a File
 
 Ask:
 
-> "Download the hello.txt file"
+> "Download the logo.png image"
 
 ### Delete a File
 
 Ask:
 
-> "Delete the hello.txt file"
+> "Delete the old-logo.png file from images"
 
 ## Project Structure
 
 After installation, your project should look like this:
 
 ```text
-filehosting-mcp-server/
-├── dist/               # Compiled JavaScript (after build)
+bambisleep-church-storage/
+├── dist/                    # Compiled JavaScript (after build)
 │   └── index.js
-├── docs/               # Documentation
+├── docs/                    # Documentation
 │   ├── index.html
 │   ├── getting-started.md
 │   ├── api-reference.md
 │   └── ...
-├── src/                # TypeScript source
+├── src/                     # TypeScript source
 │   └── index.ts
-├── storage/            # File storage (created on first use)
-├── node_modules/       # Dependencies
+├── BRANDYFICATION/          # File storage (created on first use)
+│   ├── IMAGES/              # All image files
+│   └── VIDEOS/              # All video files
+├── systemd/                 # Linux service files
+├── node_modules/            # Dependencies
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
+## Supported File Formats
+
+### Images (20+ formats)
+
+PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, EPS, PCX, TGA, EXR, HDR
+
+### Videos
+
+MP4, GIF
+
 ## Next Steps
 
-- Read the [API Reference](api-reference.md) for detailed tool documentation
+- Read the [API Reference](api-reference.md) for detailed documentation of all 10 tools
 - Check [Configuration](configuration.md) for advanced options
-- See [Examples](examples.md) for common usage patterns
+- See [Examples](examples.md) for common image/video workflows
 - Review [Security](security.md) for best practices
 
 ## Troubleshooting
@@ -211,11 +243,11 @@ filehosting-mcp-server/
 2. Ensure dependencies are installed: `npm install`
 3. Ensure the project is built: `npm run build`
 
-### Files not appearing
+### Files not appearing in correct folder
 
-1. Check the `STORAGE_DIR` environment variable
-2. Ensure the storage directory exists and is writable
-3. Check file permissions
+1. Check file extension - images go to IMAGES/, videos go to VIDEOS/
+2. Verify STORAGE_DIR is set correctly
+3. Ensure the storage directories are writable
 
 ### MCP client can't connect
 

@@ -1,40 +1,50 @@
 # Configuration
 
-This guide covers all configuration options for the File Hosting MCP Server.
+This guide covers all configuration options for the BRANDYFICATION MCP Server.
 
 ## Environment Variables
 
 ### STORAGE_DIR
 
-The directory where all uploaded files are stored.
+The root directory for BRANDYFICATION storage. The server automatically creates `IMAGES` and `VIDEOS` subdirectories.
 
-| Property     | Value                                       |
-| ------------ | ------------------------------------------- |
-| **Variable** | `STORAGE_DIR`                               |
-| **Type**     | String (file path)                          |
-| **Default**  | `./storage` (relative to working directory) |
-| **Required** | No                                          |
+| Property     | Value |
+|--------------|-------|
+| **Variable** | `STORAGE_DIR` |
+| **Type**     | String (file path) |
+| **Default**  | `./BRANDYFICATION` (relative to working directory) |
+| **Required** | No |
+
+#### Directory Structure
+
+When the server starts, it ensures this structure exists:
+
+```text
+BRANDYFICATION/          (STORAGE_DIR)
+├── IMAGES/              Created automatically
+└── VIDEOS/              Created automatically
+```
 
 #### Setting STORAGE_DIR
 
 **Windows PowerShell:**
 
 ```powershell
-$env:STORAGE_DIR = "C:\Users\username\filehost-storage"
+$env:STORAGE_DIR = "C:\Users\username\BRANDYFICATION"
 npm start
 ```
 
 **Windows Command Prompt:**
 
 ```cmd
-set STORAGE_DIR=C:\Users\username\filehost-storage
+set STORAGE_DIR=C:\Users\username\BRANDYFICATION
 npm start
 ```
 
 **macOS / Linux:**
 
 ```bash
-export STORAGE_DIR=/home/username/filehost-storage
+export STORAGE_DIR=/home/username/BRANDYFICATION
 npm start
 ```
 
@@ -43,11 +53,11 @@ npm start
 ```json
 {
   "mcpServers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
       "args": ["/path/to/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "/path/to/storage"
+        "STORAGE_DIR": "/path/to/BRANDYFICATION"
       }
     }
   }
@@ -78,11 +88,11 @@ Configuration file locations:
 ```json
 {
   "mcpServers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
-      "args": ["C:/projects/filehosting-mcp-server/dist/index.js"],
+      "args": ["C:/projects/bambisleep-church-storage/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "C:/filehost-storage"
+        "STORAGE_DIR": "C:/BRANDYFICATION"
       }
     }
   }
@@ -91,12 +101,12 @@ Configuration file locations:
 
 #### Configuration Options
 
-| Option    | Type     | Description                     |
-| --------- | -------- | ------------------------------- |
-| `command` | string   | The executable to run (`node`)  |
-| `args`    | string[] | Arguments passed to the command |
-| `env`     | object   | Environment variables to set    |
-| `cwd`     | string   | Working directory (optional)    |
+| Option | Type | Description |
+|--------|------|-------------|
+| `command` | string | The executable to run (`node`) |
+| `args` | string[] | Arguments passed to the command |
+| `env` | object | Environment variables to set |
+| `cwd` | string | Working directory (optional) |
 
 ### VS Code MCP
 
@@ -105,11 +115,11 @@ Add to your VS Code `settings.json` or workspace configuration:
 ```json
 {
   "mcp.servers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
       "args": ["${workspaceFolder}/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "${workspaceFolder}/storage"
+        "STORAGE_DIR": "${workspaceFolder}/BRANDYFICATION"
       }
     }
   }
@@ -120,20 +130,33 @@ Add to your VS Code `settings.json` or workspace configuration:
 
 ## Storage Configuration
 
-### Directory Structure
+### Folder Structure
 
-The storage directory is flat by default, but you can create subdirectories:
+BRANDYFICATION automatically organizes files:
 
 ```text
-storage/
-├── documents/
-│   ├── report.pdf
-│   └── notes.txt
-├── images/
+BRANDYFICATION/
+├── IMAGES/                  # Auto-routed for image files
 │   ├── logo.png
-│   └── banner.jpg
-└── config.json
+│   ├── banner.jpg
+│   └── icon.svg
+├── VIDEOS/                  # Auto-routed for video files
+│   ├── intro.mp4
+│   └── animation.gif
+├── documents/               # Custom directories
+├── config.json              # Other files at root
+└── notes.txt
 ```
+
+### File Routing Rules
+
+| File Type | Extensions | Destination |
+|-----------|------------|-------------|
+| Images | .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr | `BRANDYFICATION/IMAGES/` |
+| Videos | .mp4, .gif | `BRANDYFICATION/VIDEOS/` |
+| Other | All other extensions | `BRANDYFICATION/` (root) |
+
+> **Note:** GIF files can be routed to either IMAGES or VIDEOS depending on the tool used (`upload_image` vs `upload_video`).
 
 ### Permissions
 
@@ -142,8 +165,8 @@ Ensure the storage directory has appropriate permissions:
 **Linux/macOS:**
 
 ```bash
-mkdir -p /path/to/storage
-chmod 755 /path/to/storage
+mkdir -p /path/to/BRANDYFICATION
+chmod 755 /path/to/BRANDYFICATION
 ```
 
 **Windows:**
@@ -151,11 +174,11 @@ The directory should be accessible to the user running the Node.js process.
 
 ### Disk Space
 
-Monitor available disk space, especially if storing large files:
+Monitor available disk space, especially if storing large images/videos:
 
 ```bash
 # Linux/macOS
-df -h /path/to/storage
+df -h /path/to/BRANDYFICATION
 
 # Windows PowerShell
 Get-PSDrive -Name C
@@ -167,32 +190,28 @@ Get-PSDrive -Name C
 
 ### Running as a System Service
 
-#### Windows (using NSSM)
-
-1. Download [NSSM](https://nssm.cc/)
-2. Install the service:
-
-```cmd
-nssm install filehosting-mcp "C:\Program Files\nodejs\node.exe" "C:\path\to\dist\index.js"
-nssm set filehosting-mcp AppEnvironmentExtra STORAGE_DIR=C:\filehost-storage
-nssm start filehosting-mcp
-```
-
 #### Linux (using systemd)
 
-Create `/etc/systemd/system/filehosting-mcp.service`:
+Use the provided service files in the `systemd/` folder:
+
+```bash
+cd systemd
+sudo ./install.sh
+```
+
+Or manually create `/etc/systemd/system/brandyfication-mcp.service`:
 
 ```ini
 [Unit]
-Description=File Hosting MCP Server
+Description=BRANDYFICATION MCP Server
 After=network.target
 
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/opt/filehosting-mcp-server
-Environment=STORAGE_DIR=/var/lib/filehosting
-ExecStart=/usr/bin/node /opt/filehosting-mcp-server/dist/index.js
+WorkingDirectory=/opt/bambisleep-church-storage
+Environment=STORAGE_DIR=/var/lib/BRANDYFICATION
+ExecStart=/usr/bin/node /opt/bambisleep-church-storage/dist/index.js
 Restart=on-failure
 
 [Install]
@@ -202,8 +221,19 @@ WantedBy=multi-user.target
 Enable and start:
 
 ```bash
-sudo systemctl enable filehosting-mcp
-sudo systemctl start filehosting-mcp
+sudo systemctl enable brandyfication-mcp
+sudo systemctl start brandyfication-mcp
+```
+
+#### Windows (using NSSM)
+
+1. Download [NSSM](https://nssm.cc/)
+2. Install the service:
+
+```cmd
+nssm install brandyfication-mcp "C:\Program Files\nodejs\node.exe" "C:\path\to\dist\index.js"
+nssm set brandyfication-mcp AppEnvironmentExtra STORAGE_DIR=C:\BRANDYFICATION
+nssm start brandyfication-mcp
 ```
 
 ### Using with Docker
@@ -220,7 +250,7 @@ RUN npm ci --only=production
 
 COPY dist/ ./dist/
 
-ENV STORAGE_DIR=/data
+ENV STORAGE_DIR=/data/BRANDYFICATION
 
 VOLUME ["/data"]
 
@@ -230,8 +260,8 @@ CMD ["node", "dist/index.js"]
 Build and run:
 
 ```bash
-docker build -t filehosting-mcp .
-docker run -v /host/storage:/data filehosting-mcp
+docker build -t brandyfication-mcp .
+docker run -v /host/storage:/data brandyfication-mcp
 ```
 
 ---
@@ -241,11 +271,12 @@ docker run -v /host/storage:/data filehosting-mcp
 Before deploying, verify:
 
 - [ ] `STORAGE_DIR` points to a valid, writable directory
-- [ ] The Node.js version is 18.0.0 or higher
-- [ ] The project has been built (`npm run build`)
-- [ ] MCP client configuration uses the correct path to `dist/index.js`
-- [ ] Environment variables are set in the MCP client config
-- [ ] Storage directory has sufficient disk space
+- [ ] IMAGES and VIDEOS subdirectories can be created
+- [ ] Node.js version is 18.0.0 or higher
+- [ ] Project has been built (`npm run build`)
+- [ ] MCP client configuration uses correct path to `dist/index.js`
+- [ ] Environment variables are set in MCP client config
+- [ ] Storage directory has sufficient disk space for images/videos
 - [ ] Appropriate file permissions are set
 
 ---
@@ -263,8 +294,9 @@ Ensure the path in `args` points to the compiled JavaScript file:
 ### "Permission denied" Error
 
 1. Check that the storage directory exists
-2. Verify write permissions
-3. On Linux/macOS, check file ownership
+2. Verify write permissions for STORAGE_DIR
+3. Ensure IMAGES and VIDEOS subdirectories can be created
+4. On Linux/macOS, check file ownership
 
 ### Environment Variables Not Working
 
@@ -274,6 +306,6 @@ Ensure the path in `args` points to the compiled JavaScript file:
 
 ### Server Not Starting
 
-1. Test manually: `STORAGE_DIR=/path/to/storage node dist/index.js`
+1. Test manually: `STORAGE_DIR=/path/to/BRANDYFICATION node dist/index.js`
 2. Check for TypeScript compilation errors
 3. Verify all dependencies are installed

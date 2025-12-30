@@ -1,49 +1,49 @@
 # API Reference
 
-Complete documentation for all File Hosting MCP Server tools and resources.
+Complete documentation for all BRANDYFICATION MCP Server tools and resources.
 
 ## Overview
 
-The File Hosting MCP Server exposes functionality through two MCP primitives:
+The BRANDYFICATION MCP Server provides **10 tools** for managing images, videos, and files:
 
-- **Tools**: Actions that can be performed (upload, download, delete, etc.)
-- **Resources**: Files exposed as readable resources with MIME types
+| Tool | Description |
+|------|-------------|
+| `upload_image` | Upload images to BRANDYFICATION/IMAGES |
+| `upload_video` | Upload videos to BRANDYFICATION/VIDEOS |
+| `upload_file` | Upload any file (auto-routes to correct folder) |
+| `download_file` | Download/read files from storage |
+| `list_files` | List files in any or all folders |
+| `list_images` | List all images in BRANDYFICATION/IMAGES |
+| `list_videos` | List all videos in BRANDYFICATION/VIDEOS |
+| `delete_file` | Delete files from storage |
+| `get_file_info` | Get file metadata and MIME type |
+| `create_directory` | Create custom subdirectories |
 
 ---
 
-## Tools
+## Image Tools
 
-### upload_file
+### upload_image
 
-Upload a file to the storage directory.
+Upload an image file to BRANDYFICATION/IMAGES.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description                                     |
-| ---------- | ------ | -------- | ----------------------------------------------- |
-| `filename` | string | ✅ Yes   | Name of the file to create                      |
-| `content`  | string | ✅ Yes   | Content of the file                             |
-| `encoding` | string | ❌ No    | Encoding type: `"utf8"` (default) or `"base64"` |
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| `filename` | string | ✅ Yes   | Name of the image file (with extension) |
+| `content`  | string | ✅ Yes   | Base64-encoded image content |
 
-#### Examples
+#### Supported Formats
 
-**Upload a text file:**
+PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, EPS, PCX, TGA, EXR, HDR
 
-```json
-{
-  "filename": "notes.txt",
-  "content": "These are my notes.\nLine 2.",
-  "encoding": "utf8"
-}
-```
-
-**Upload a binary file (e.g., image):**
+#### Example
 
 ```json
 {
-  "filename": "image.png",
-  "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-  "encoding": "base64"
+  "filename": "logo.png",
+  "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 }
 ```
 
@@ -51,85 +51,24 @@ Upload a file to the storage directory.
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "File \"notes.txt\" uploaded successfully to ./storage/notes.txt"
-    }
-  ]
+  "content": [{ "type": "text", "text": "Image \"logo.png\" uploaded to BRANDYFICATION/IMAGES/" }]
 }
 ```
 
-#### Error Cases
-
-- File system write errors
-- Invalid encoding specified
-
----
-
-### download_file
-
-Download (read) a file from storage.
-
-#### Parameters
-
-| Parameter  | Type   | Required | Description                                         |
-| ---------- | ------ | -------- | --------------------------------------------------- |
-| `filename` | string | ✅ Yes   | Name of the file to download                        |
-| `encoding` | string | ❌ No    | Response encoding: `"utf8"` (default) or `"base64"` |
-
-#### Examples
-
-**Download as text:**
+#### Error Response (Invalid Format)
 
 ```json
 {
-  "filename": "notes.txt",
-  "encoding": "utf8"
-}
-```
-
-**Download as base64 (for binary files):**
-
-```json
-{
-  "filename": "image.png",
-  "encoding": "base64"
-}
-```
-
-#### Response
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "These are my notes.\nLine 2."
-    }
-  ]
-}
-```
-
-#### Error Response
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "Error: File \"nonexistent.txt\" not found"
-    }
-  ],
+  "content": [{ "type": "text", "text": "Error: \".doc\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr" }],
   "isError": true
 }
 ```
 
 ---
 
-### list_files
+### list_images
 
-List all files and directories in the storage root.
+List all images in BRANDYFICATION/IMAGES.
 
 #### Parameters
 
@@ -145,23 +84,203 @@ None required.
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "[\n  {\n    \"name\": \"notes.txt\",\n    \"type\": \"file\"\n  },\n  {\n    \"name\": \"images\",\n    \"type\": \"directory\"\n  }\n]"
-    }
-  ]
+  "content": [{
+    "type": "text",
+    "text": "{\n  \"folder\": \"BRANDYFICATION/IMAGES\",\n  \"images\": [\n    {\n      \"name\": \"logo.png\",\n      \"mimeType\": \"image/png\",\n      \"path\": \"BRANDYFICATION/IMAGES/logo.png\"\n    },\n    {\n      \"name\": \"banner.jpg\",\n      \"mimeType\": \"image/jpeg\",\n      \"path\": \"BRANDYFICATION/IMAGES/banner.jpg\"\n    }\n  ]\n}"
+  }]
 }
 ```
 
-#### Response Format
+---
 
-The response is a JSON array of objects:
+## Video Tools
 
-```typescript
-interface FileEntry {
-  name: string; // File or directory name
-  type: "file" | "directory";
+### upload_video
+
+Upload a video file to BRANDYFICATION/VIDEOS.
+
+#### Parameters
+
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| `filename` | string | ✅ Yes   | Name of the video file (with extension) |
+| `content`  | string | ✅ Yes   | Base64-encoded video content |
+
+#### Supported Formats
+
+MP4, GIF
+
+#### Example
+
+```json
+{
+  "filename": "intro.mp4",
+  "content": "<base64-encoded-video>"
+}
+```
+
+#### Response
+
+```json
+{
+  "content": [{ "type": "text", "text": "Video \"intro.mp4\" uploaded to BRANDYFICATION/VIDEOS/" }]
+}
+```
+
+---
+
+### list_videos
+
+List all videos in BRANDYFICATION/VIDEOS.
+
+#### Parameters
+
+None required.
+
+#### Example
+
+```json
+{}
+```
+
+#### Response
+
+```json
+{
+  "content": [{
+    "type": "text",
+    "text": "{\n  \"folder\": \"BRANDYFICATION/VIDEOS\",\n  \"videos\": [\n    {\n      \"name\": \"intro.mp4\",\n      \"mimeType\": \"video/mp4\",\n      \"path\": \"BRANDYFICATION/VIDEOS/intro.mp4\"\n    }\n  ]\n}"
+  }]
+}
+```
+
+---
+
+## General File Tools
+
+### upload_file
+
+Upload a file to BRANDYFICATION. Automatically routes to IMAGES or VIDEOS subfolder based on file extension.
+
+#### Parameters
+
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| `filename` | string | ✅ Yes   | Name of the file to upload |
+| `content`  | string | ✅ Yes   | File content (base64 for binary, plain text otherwise) |
+| `encoding` | string | ❌ No    | Encoding: `"base64"` or `"utf8"` (default: utf8) |
+
+#### Example - Image Upload
+
+```json
+{
+  "filename": "photo.png",
+  "content": "<base64-content>",
+  "encoding": "base64"
+}
+```
+
+Result: Saved to `BRANDYFICATION/IMAGES/photo.png`
+
+#### Example - Video Upload
+
+```json
+{
+  "filename": "clip.mp4",
+  "content": "<base64-content>",
+  "encoding": "base64"
+}
+```
+
+Result: Saved to `BRANDYFICATION/VIDEOS/clip.mp4`
+
+#### Example - Text File
+
+```json
+{
+  "filename": "notes.txt",
+  "content": "These are my notes.",
+  "encoding": "utf8"
+}
+```
+
+Result: Saved to `BRANDYFICATION/notes.txt` (root folder)
+
+---
+
+### download_file
+
+Download/read a file from BRANDYFICATION storage.
+
+#### Parameters
+
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| `filename` | string | ✅ Yes   | Name of the file to download |
+| `folder`   | string | ❌ No    | Folder to download from: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
+| `encoding` | string | ❌ No    | Response encoding: `"base64"` or `"utf8"` (auto-detected based on file type) |
+
+#### Example - Download Image
+
+```json
+{
+  "filename": "logo.png",
+  "folder": "IMAGES"
+}
+```
+
+#### Example - Download with Auto-Detection
+
+```json
+{
+  "filename": "logo.png"
+}
+```
+
+The server automatically detects the folder based on file extension.
+
+#### Response (Binary File)
+
+```json
+{
+  "content": [{ "type": "text", "text": "iVBORw0KGgoAAAANSUhEUgAAAAE..." }]
+}
+```
+
+---
+
+### list_files
+
+List files in any or all BRANDYFICATION folders.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| `folder`  | string | ❌ No    | Which folder: `"IMAGES"`, `"VIDEOS"`, `"root"`, `"all"` (default: all) |
+
+#### Example - List All
+
+```json
+{}
+```
+
+#### Example - List Images Only
+
+```json
+{
+  "folder": "IMAGES"
+}
+```
+
+#### Response
+
+```json
+{
+  "content": [{
+    "type": "text",
+    "text": "[\n  {\n    \"folder\": \"BRANDYFICATION\",\n    \"files\": [{ \"name\": \"config.json\", \"type\": \"file\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/IMAGES\",\n    \"files\": [{ \"name\": \"logo.png\", \"type\": \"image/png\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/VIDEOS\",\n    \"files\": [{ \"name\": \"intro.mp4\", \"type\": \"video/mp4\" }]\n  }\n]"
+  }]
 }
 ```
 
@@ -169,19 +288,21 @@ interface FileEntry {
 
 ### delete_file
 
-Permanently delete a file from storage.
+Delete a file from BRANDYFICATION storage.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description                |
-| ---------- | ------ | -------- | -------------------------- |
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
 | `filename` | string | ✅ Yes   | Name of the file to delete |
+| `folder`   | string | ❌ No    | Folder containing the file: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
 
 #### Example
 
 ```json
 {
-  "filename": "old-notes.txt"
+  "filename": "old-logo.png",
+  "folder": "IMAGES"
 }
 ```
 
@@ -189,26 +310,7 @@ Permanently delete a file from storage.
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "File \"old-notes.txt\" deleted successfully"
-    }
-  ]
-}
-```
-
-#### Error Response
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "Error: Could not delete \"nonexistent.txt\". File may not exist."
-    }
-  ],
-  "isError": true
+  "content": [{ "type": "text", "text": "File \"old-logo.png\" deleted successfully" }]
 }
 ```
 
@@ -216,19 +318,21 @@ Permanently delete a file from storage.
 
 ### get_file_info
 
-Get metadata about a file.
+Get metadata about a file including size, MIME type, and dates.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description                 |
-| ---------- | ------ | -------- | --------------------------- |
+| Parameter  | Type   | Required | Description |
+|------------|--------|----------|-------------|
 | `filename` | string | ✅ Yes   | Name of the file to inspect |
+| `folder`   | string | ❌ No    | Folder containing the file: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
 
 #### Example
 
 ```json
 {
-  "filename": "document.pdf"
+  "filename": "logo.png",
+  "folder": "IMAGES"
 }
 ```
 
@@ -236,25 +340,10 @@ Get metadata about a file.
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "{\n  \"name\": \"document.pdf\",\n  \"size\": 1048576,\n  \"sizeHuman\": \"1 MB\",\n  \"created\": \"2025-01-15T10:30:00.000Z\",\n  \"modified\": \"2025-01-15T14:22:00.000Z\",\n  \"isDirectory\": false\n}"
-    }
-  ]
-}
-```
-
-#### Response Format
-
-```typescript
-interface FileInfo {
-  name: string; // File name
-  size: number; // Size in bytes
-  sizeHuman: string; // Human-readable size (e.g., "1.5 MB")
-  created: string; // ISO 8601 creation timestamp
-  modified: string; // ISO 8601 modification timestamp
-  isDirectory: boolean;
+  "content": [{
+    "type": "text",
+    "text": "{\n  \"name\": \"logo.png\",\n  \"size\": 24576,\n  \"sizeHuman\": \"24 KB\",\n  \"mimeType\": \"image/png\",\n  \"created\": \"2025-01-15T10:30:00.000Z\",\n  \"modified\": \"2025-01-15T14:22:00.000Z\",\n  \"isDirectory\": false\n}"
+  }]
 }
 ```
 
@@ -262,19 +351,19 @@ interface FileInfo {
 
 ### create_directory
 
-Create a subdirectory in storage.
+Create a custom subdirectory in BRANDYFICATION.
 
 #### Parameters
 
-| Parameter | Type   | Required | Description                     |
-| --------- | ------ | -------- | ------------------------------- |
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
 | `dirname` | string | ✅ Yes   | Name of the directory to create |
 
 #### Example
 
 ```json
 {
-  "dirname": "images"
+  "dirname": "archive"
 }
 ```
 
@@ -282,83 +371,37 @@ Create a subdirectory in storage.
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "Directory \"images\" created successfully"
-    }
-  ]
+  "content": [{ "type": "text", "text": "Directory \"archive\" created successfully in BRANDYFICATION/" }]
 }
 ```
-
-#### Notes
-
-- Creates the directory if it doesn't exist
-- Does not error if directory already exists
-- Only creates directories in the storage root (no nested paths for security)
 
 ---
 
 ## Resources
 
-Files in storage are also exposed as MCP resources, allowing direct access through the resources API.
+Files in BRANDYFICATION storage are also exposed as MCP resources.
 
 ### Listing Resources
 
-The server responds to `resources/list` requests with all files in storage:
+The server responds to `resources/list` requests with all files:
 
 ```json
 {
   "resources": [
     {
-      "uri": "file:///path/to/storage/notes.txt",
-      "name": "notes.txt",
-      "mimeType": "text/plain"
+      "uri": "file:///path/to/BRANDYFICATION/config.json",
+      "name": "config.json",
+      "mimeType": "application/json"
     },
     {
-      "uri": "file:///path/to/storage/data.json",
-      "name": "data.json",
-      "mimeType": "application/json"
-    }
-  ]
-}
-```
-
-### Reading Resources
-
-Resources can be read via `resources/read` requests:
-
-**Request:**
-
-```json
-{
-  "uri": "file:///path/to/storage/notes.txt"
-}
-```
-
-**Response (text file):**
-
-```json
-{
-  "contents": [
+      "uri": "file:///path/to/BRANDYFICATION/IMAGES/logo.png",
+      "name": "IMAGES/logo.png",
+      "mimeType": "image/png"
+    },
     {
-      "uri": "file:///path/to/storage/notes.txt",
-      "mimeType": "text/plain",
-      "text": "File contents here..."
-    }
-  ]
-}
-```
-
-**Response (binary file):**
-
-```json
-{
-  "contents": [
-    {
-      "uri": "file:///path/to/storage/image.png",
-      "mimeType": "image/png",
-      "blob": "base64encodedcontent..."
+      "uri": "file:///path/to/BRANDYFICATION/VIDEOS/intro.mp4",
+      "name": "VIDEOS/intro.mp4",
+      "mimeType": "video/mp4"
     }
   ]
 }
@@ -366,24 +409,25 @@ Resources can be read via `resources/read` requests:
 
 ### Supported MIME Types
 
-| Extension       | MIME Type                  |
-| --------------- | -------------------------- |
-| `.txt`          | `text/plain`               |
-| `.html`         | `text/html`                |
-| `.css`          | `text/css`                 |
-| `.js`           | `text/javascript`          |
-| `.json`         | `application/json`         |
-| `.xml`          | `application/xml`          |
-| `.pdf`          | `application/pdf`          |
-| `.png`          | `image/png`                |
-| `.jpg`, `.jpeg` | `image/jpeg`               |
-| `.gif`          | `image/gif`                |
-| `.svg`          | `image/svg+xml`            |
-| `.mp3`          | `audio/mpeg`               |
-| `.mp4`          | `video/mp4`                |
-| `.zip`          | `application/zip`          |
-| `.md`           | `text/markdown`            |
-| (other)         | `application/octet-stream` |
+| Extension | MIME Type |
+|-----------|-----------|
+| `.png` | `image/png` |
+| `.jpg`, `.jpeg` | `image/jpeg` |
+| `.gif` | `image/gif` |
+| `.bmp` | `image/bmp` |
+| `.webp` | `image/webp` |
+| `.svg` | `image/svg+xml` |
+| `.ico` | `image/x-icon` |
+| `.tiff`, `.tif` | `image/tiff` |
+| `.avif` | `image/avif` |
+| `.heic` | `image/heic` |
+| `.heif` | `image/heif` |
+| `.psd` | `image/vnd.adobe.photoshop` |
+| `.mp4` | `video/mp4` |
+| `.txt` | `text/plain` |
+| `.json` | `application/json` |
+| `.md` | `text/markdown` |
+| (other) | `application/octet-stream` |
 
 ---
 
@@ -393,29 +437,16 @@ All tools return errors in a consistent format:
 
 ```json
 {
-  "content": [
-    {
-      "type": "text",
-      "text": "Error: Description of what went wrong"
-    }
-  ],
+  "content": [{ "type": "text", "text": "Error: Description of what went wrong" }],
   "isError": true
 }
 ```
 
-### Common Error Codes
+### Common Errors
 
-| Error             | Description                               |
-| ----------------- | ----------------------------------------- |
-| File not found    | The specified file does not exist         |
-| Permission denied | Cannot read/write to storage directory    |
-| Invalid encoding  | Encoding must be "utf8" or "base64"       |
-| Unknown tool      | The requested tool name is not recognized |
-
----
-
-## Rate Limits & Constraints
-
-- **File size**: Limited by available memory (files are loaded entirely into memory)
-- **Filename**: Must be a valid filesystem name; path traversal attempts are blocked
-- **Concurrent access**: No built-in locking; avoid concurrent writes to the same file
+| Error | Description |
+|-------|-------------|
+| File not found | The specified file does not exist |
+| Invalid format | File extension not supported for the operation |
+| Permission denied | Cannot read/write to storage directory |
+| Unknown tool | The requested tool name is not recognized |

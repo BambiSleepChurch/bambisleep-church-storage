@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions for the File Hosting MCP Server.
+Common issues and solutions for the BRANDYFICATION MCP Server.
 
 ## Installation Issues
 
@@ -79,6 +79,15 @@ npm run build
 node dist/index.js
 ```
 
+**Expected output:**
+
+```
+BRANDYFICATION File Hosting MCP Server running on stdio
+Storage: /path/to/BRANDYFICATION
+  ├── IMAGES: /path/to/BRANDYFICATION/IMAGES
+  └── VIDEOS: /path/to/BRANDYFICATION/VIDEOS
+```
+
 ### "Error: Cannot create storage directory"
 
 **Cause:** Permission denied or invalid path.
@@ -90,7 +99,9 @@ node dist/index.js
 3. Create the directory manually:
 
 ```bash
-mkdir -p /path/to/storage
+mkdir -p /path/to/BRANDYFICATION
+mkdir -p /path/to/BRANDYFICATION/IMAGES
+mkdir -p /path/to/BRANDYFICATION/VIDEOS
 ```
 
 ---
@@ -113,11 +124,11 @@ mkdir -p /path/to/storage
 ```json
 {
   "mcpServers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
       "args": ["/absolute/path/to/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "/absolute/path/to/storage"
+        "STORAGE_DIR": "/absolute/path/to/BRANDYFICATION"
       }
     }
   }
@@ -156,29 +167,57 @@ node --version
 1. Check MCP client logs for errors
 2. Test the server manually
 3. Verify the path to `dist/index.js` is correct
+4. Ensure all 10 tools are listed: upload_image, upload_video, upload_file, download_file, list_files, list_images, list_videos, delete_file, get_file_info, create_directory
 
 ---
 
-## File Operation Issues
+## Image/Video Operation Issues
 
-### "File not found" when file exists
+### "Not a supported image format"
 
-**Cause:** Filename mismatch or wrong storage directory.
+**Cause:** Trying to use `upload_image` with a non-image file extension.
+
+**Supported image formats:**
+PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, EPS, PCX, TGA, EXR, HDR
+
+**Solution:** Use the correct file extension or use `upload_file` instead.
+
+### "Not a supported video format"
+
+**Cause:** Trying to use `upload_video` with a non-video file extension.
+
+**Supported video formats:** MP4, GIF
+
+**Solution:** Convert video to MP4 format or use `upload_file`.
+
+### Image uploaded to wrong folder
+
+**Cause:** Using `upload_file` with automatic routing.
+
+**Solution:** Use `upload_image` to guarantee the file goes to BRANDYFICATION/IMAGES/.
+
+### File not found when file exists
+
+**Cause:** Looking in wrong folder or filename mismatch.
 
 **Solutions:**
 
-1. **Check exact filename (case-sensitive on Linux/macOS):**
+1. **Check all folders:**
 
 ```json
-{ "name": "list_files", "arguments": {} }
+{ "name": "list_files", "arguments": { "folder": "all" } }
 ```
 
-2. **Verify STORAGE_DIR:**
+2. **Specify the correct folder:**
 
-```bash
-echo $STORAGE_DIR  # Linux/macOS
-echo %STORAGE_DIR% # Windows CMD
-$env:STORAGE_DIR   # Windows PowerShell
+```json
+{ "name": "download_file", "arguments": { "filename": "logo.png", "folder": "IMAGES" } }
+```
+
+3. **Check exact filename (case-sensitive on Linux/macOS):**
+
+```json
+{ "name": "list_images", "arguments": {} }
 ```
 
 ### "Permission denied" errors
@@ -191,49 +230,22 @@ $env:STORAGE_DIR   # Windows PowerShell
 
 ```bash
 # Check ownership
-ls -la /path/to/storage
+ls -la /path/to/BRANDYFICATION
 
 # Fix permissions
-chmod 755 /path/to/storage
-chown $USER:$USER /path/to/storage
+chmod 755 /path/to/BRANDYFICATION
+chown $USER:$USER /path/to/BRANDYFICATION
+chmod 755 /path/to/BRANDYFICATION/IMAGES
+chmod 755 /path/to/BRANDYFICATION/VIDEOS
 ```
 
 **Windows:**
 
-1. Right-click storage folder → Properties
+1. Right-click BRANDYFICATION folder → Properties
 2. Security tab → Edit
 3. Add your user with Full Control
 
-### File content appears corrupted
-
-**Cause:** Wrong encoding used for binary files.
-
-**Solutions:**
-
-**For binary files (images, PDFs, etc.):**
-
-```json
-{
-  "name": "upload_file",
-  "arguments": {
-    "filename": "image.png",
-    "content": "<base64-content>",
-    "encoding": "base64"
-  }
-}
-```
-
-```json
-{
-  "name": "download_file",
-  "arguments": {
-    "filename": "image.png",
-    "encoding": "base64"
-  }
-}
-```
-
-### Large file upload fails
+### Large image/video upload fails
 
 **Cause:** Memory limitations or timeout.
 
@@ -246,6 +258,8 @@ chown $USER:$USER /path/to/storage
 node --max-old-space-size=4096 dist/index.js
 ```
 
+3. Consider video compression before upload
+
 ---
 
 ## Common Error Messages
@@ -254,26 +268,31 @@ node --max-old-space-size=4096 dist/index.js
 
 **Cause:** Requesting a tool that doesn't exist.
 
-**Available tools:**
+**Available tools (10 total):**
 
-- `upload_file`
-- `download_file`
-- `list_files`
-- `delete_file`
-- `get_file_info`
-- `create_directory`
+- `upload_image` - Upload images to BRANDYFICATION/IMAGES
+- `upload_video` - Upload videos to BRANDYFICATION/VIDEOS
+- `upload_file` - Upload any file (auto-routes)
+- `download_file` - Download files from storage
+- `list_files` - List files in any/all folders
+- `list_images` - List images only
+- `list_videos` - List videos only
+- `delete_file` - Delete files
+- `get_file_info` - Get file metadata
+- `create_directory` - Create custom directories
 
 ### "Error: ENOENT: no such file or directory"
 
-**Cause:** Storage directory doesn't exist.
+**Cause:** BRANDYFICATION directory or subdirectories don't exist.
 
 **Solution:**
 
 ```bash
-mkdir -p /path/to/storage
+mkdir -p /path/to/BRANDYFICATION/IMAGES
+mkdir -p /path/to/BRANDYFICATION/VIDEOS
 ```
 
-Or set a valid `STORAGE_DIR` that exists.
+Or set a valid `STORAGE_DIR` that exists - the server will create IMAGES and VIDEOS automatically.
 
 ### "Error: EACCES: permission denied"
 
@@ -283,13 +302,18 @@ Or set a valid `STORAGE_DIR` that exists.
 
 ### "Error: ENOSPC: no space left on device"
 
-**Cause:** Disk is full.
+**Cause:** Disk is full (common with image/video storage).
 
 **Solution:**
 
 1. Free up disk space
-2. Move storage to a larger drive
-3. Delete unnecessary files
+2. Move BRANDYFICATION to a larger drive
+3. Delete unnecessary images/videos:
+
+```json
+{ "name": "list_images", "arguments": {} }
+{ "name": "delete_file", "arguments": { "filename": "old-image.png", "folder": "IMAGES" } }
+```
 
 ---
 
@@ -297,14 +321,11 @@ Or set a valid `STORAGE_DIR` that exists.
 
 ### Enable verbose logging
 
-Add console logging to troubleshoot:
+Add console logging to troubleshoot. Check stderr output:
 
-```typescript
-// In src/index.ts, add at the top of tool handlers:
-console.error(`[DEBUG] Tool called: ${name}`, JSON.stringify(args));
+```bash
+STORAGE_DIR=./test-BRANDYFICATION node dist/index.js 2>&1
 ```
-
-Rebuild and check stderr output.
 
 ### Check MCP client logs
 
@@ -317,7 +338,7 @@ Rebuild and check stderr output.
 
 ```bash
 # Start server
-STORAGE_DIR=./test-storage node dist/index.js
+STORAGE_DIR=./test-BRANDYFICATION node dist/index.js
 
 # In another terminal, send a test request
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node dist/index.js
@@ -326,14 +347,16 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node dist/index.js
 ### Verify file system
 
 ```bash
-# Check storage directory
-ls -la /path/to/storage
+# Check BRANDYFICATION directory structure
+ls -la /path/to/BRANDYFICATION
+ls -la /path/to/BRANDYFICATION/IMAGES
+ls -la /path/to/BRANDYFICATION/VIDEOS
 
 # Check disk space
-df -h /path/to/storage
+df -h /path/to/BRANDYFICATION
 
 # Check permissions
-stat /path/to/storage
+stat /path/to/BRANDYFICATION
 ```
 
 ---
@@ -343,7 +366,7 @@ stat /path/to/storage
 If you're still having issues:
 
 1. **Check the documentation** - Review all docs in the `/docs` folder
-2. **Search for similar issues** - Someone may have encountered the same problem
+2. **Search for similar issues** - Check GitHub issues
 3. **Gather information:**
 
    - Node.js version: `node --version`
@@ -354,24 +377,33 @@ If you're still having issues:
 
 4. **Simplify the problem:**
    - Try with default settings
-   - Test with a simple file
+   - Test with a small image
    - Run the server manually
 
 ---
 
 ## FAQ
 
-**Q: Can I use a network drive for storage?**
-A: Yes, but ensure it's mounted and accessible to the Node.js process. Performance may vary.
+**Q: Can I use a network drive for BRANDYFICATION storage?**
+A: Yes, but ensure it's mounted and accessible. Performance may vary for large images/videos.
 
 **Q: Can I run multiple instances?**
-A: Yes, but use different storage directories to avoid conflicts.
+A: Yes, but use different STORAGE_DIR paths to avoid conflicts.
 
-**Q: How do I back up my files?**
-A: Simply copy the storage directory. All files are stored as-is.
+**Q: How do I back up my images/videos?**
+A: Simply copy the entire BRANDYFICATION directory. All files are stored as-is.
 
 **Q: Is there a file size limit?**
-A: No hard limit, but files are loaded into memory. Very large files may cause issues.
+A: No hard limit, but files are loaded into memory. Very large videos may cause issues.
 
-**Q: Can I store files in subdirectories?**
-A: The current implementation stores all files in the root of STORAGE_DIR. You can create directories with `create_directory`, but uploading directly to subdirectories requires modifying the code.
+**Q: Can I store files in subdirectories of IMAGES or VIDEOS?**
+A: The tools store files directly in IMAGES/ or VIDEOS/. Use `create_directory` for custom organization at the BRANDYFICATION root level.
+
+**Q: Why do GIF files go to IMAGES by default?**
+A: GIF is primarily an image format. Use `upload_video` explicitly if you want animated GIFs in the VIDEOS folder.
+
+**Q: How do I move a file from IMAGES to VIDEOS?**
+A: Download the file, delete it from the source, then upload to the destination:
+1. `download_file` (folder: "IMAGES")
+2. `delete_file` (folder: "IMAGES")
+3. `upload_video` (to put in VIDEOS)

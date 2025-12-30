@@ -1,24 +1,23 @@
 # Examples
 
-Real-world usage examples and common patterns for the File Hosting MCP Server.
+Real-world usage examples and common patterns for the BRANDYFICATION MCP Server.
 
-## Basic Operations
+## Image Operations
 
-### Uploading a Text File
+### Upload an Image
 
 **User request:**
 
-> "Save my shopping list to a file called shopping.txt"
+> "Upload this logo as logo.png"
 
 **Tool call:**
 
 ```json
 {
-  "name": "upload_file",
+  "name": "upload_image",
   "arguments": {
-    "filename": "shopping.txt",
-    "content": "- Milk\n- Eggs\n- Bread\n- Butter",
-    "encoding": "utf8"
+    "filename": "logo.png",
+    "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
   }
 }
 ```
@@ -26,64 +25,74 @@ Real-world usage examples and common patterns for the File Hosting MCP Server.
 **Response:**
 
 ```
-File "shopping.txt" uploaded successfully to ./storage/shopping.txt
+Image "logo.png" uploaded to BRANDYFICATION/IMAGES/
 ```
 
 ---
 
-### Uploading JSON Data
+### Upload Different Image Formats
 
-**User request:**
-
-> "Store this configuration as config.json"
-
-**Tool call:**
+**PNG (screenshots, graphics with transparency):**
 
 ```json
 {
-  "name": "upload_file",
+  "name": "upload_image",
   "arguments": {
-    "filename": "config.json",
-    "content": "{\n  \"theme\": \"dark\",\n  \"language\": \"en\",\n  \"notifications\": true\n}",
-    "encoding": "utf8"
+    "filename": "screenshot.png",
+    "content": "<base64-content>"
+  }
+}
+```
+
+**JPEG (photographs):**
+
+```json
+{
+  "name": "upload_image",
+  "arguments": {
+    "filename": "photo.jpg",
+    "content": "<base64-content>"
+  }
+}
+```
+
+**SVG (vector graphics):**
+
+```json
+{
+  "name": "upload_image",
+  "arguments": {
+    "filename": "icon.svg",
+    "content": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg=="
+  }
+}
+```
+
+**WebP (modern web images):**
+
+```json
+{
+  "name": "upload_image",
+  "arguments": {
+    "filename": "hero.webp",
+    "content": "<base64-content>"
   }
 }
 ```
 
 ---
 
-### Uploading a Binary File (Image)
+### List All Images
 
 **User request:**
 
-> "Save this small icon as a PNG file"
+> "Show me all images I have stored"
 
 **Tool call:**
 
 ```json
 {
-  "name": "upload_file",
-  "arguments": {
-    "filename": "icon.png",
-    "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-    "encoding": "base64"
-  }
-}
-```
-
----
-
-### Listing All Files
-
-**User request:**
-
-> "What files do I have stored?"
-
-**Tool call:**
-
-```json
-{
-  "name": "list_files",
+  "name": "list_images",
   "arguments": {}
 }
 ```
@@ -91,29 +100,35 @@ File "shopping.txt" uploaded successfully to ./storage/shopping.txt
 **Response:**
 
 ```json
-[
-  {
-    "name": "shopping.txt",
-    "type": "file"
-  },
-  {
-    "name": "config.json",
-    "type": "file"
-  },
-  {
-    "name": "images",
-    "type": "directory"
-  }
-]
+{
+  "folder": "BRANDYFICATION/IMAGES",
+  "images": [
+    {
+      "name": "logo.png",
+      "mimeType": "image/png",
+      "path": "BRANDYFICATION/IMAGES/logo.png"
+    },
+    {
+      "name": "banner.jpg",
+      "mimeType": "image/jpeg",
+      "path": "BRANDYFICATION/IMAGES/banner.jpg"
+    },
+    {
+      "name": "icon.svg",
+      "mimeType": "image/svg+xml",
+      "path": "BRANDYFICATION/IMAGES/icon.svg"
+    }
+  ]
+}
 ```
 
 ---
 
-### Reading a File
+### Download an Image
 
 **User request:**
 
-> "Show me what's in my shopping list"
+> "Download the logo image"
 
 **Tool call:**
 
@@ -121,163 +136,8 @@ File "shopping.txt" uploaded successfully to ./storage/shopping.txt
 {
   "name": "download_file",
   "arguments": {
-    "filename": "shopping.txt",
-    "encoding": "utf8"
-  }
-}
-```
-
-**Response:**
-
-```
-- Milk
-- Eggs
-- Bread
-- Butter
-```
-
----
-
-### Getting File Information
-
-**User request:**
-
-> "How big is my config file and when was it last modified?"
-
-**Tool call:**
-
-```json
-{
-  "name": "get_file_info",
-  "arguments": {
-    "filename": "config.json"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "name": "config.json",
-  "size": 89,
-  "sizeHuman": "89 Bytes",
-  "created": "2025-01-15T10:30:00.000Z",
-  "modified": "2025-01-15T10:30:00.000Z",
-  "isDirectory": false
-}
-```
-
----
-
-### Deleting a File
-
-**User request:**
-
-> "Delete the old shopping list"
-
-**Tool call:**
-
-```json
-{
-  "name": "delete_file",
-  "arguments": {
-    "filename": "shopping.txt"
-  }
-}
-```
-
-**Response:**
-
-```
-File "shopping.txt" deleted successfully
-```
-
----
-
-### Creating a Directory
-
-**User request:**
-
-> "Create a folder called 'documents' for my files"
-
-**Tool call:**
-
-```json
-{
-  "name": "create_directory",
-  "arguments": {
-    "dirname": "documents"
-  }
-}
-```
-
-**Response:**
-
-```
-Directory "documents" created successfully
-```
-
----
-
-## Advanced Patterns
-
-### Storing Code Snippets
-
-**User request:**
-
-> "Save this Python function for later"
-
-**Tool call:**
-
-```json
-{
-  "name": "upload_file",
-  "arguments": {
-    "filename": "fibonacci.py",
-    "content": "def fibonacci(n):\n    \"\"\"Generate the first n Fibonacci numbers.\"\"\"\n    fib = [0, 1]\n    for i in range(2, n):\n        fib.append(fib[i-1] + fib[i-2])\n    return fib[:n]\n\nif __name__ == '__main__':\n    print(fibonacci(10))",
-    "encoding": "utf8"
-  }
-}
-```
-
----
-
-### Storing Markdown Notes
-
-**User request:**
-
-> "Save my meeting notes as markdown"
-
-**Tool call:**
-
-```json
-{
-  "name": "upload_file",
-  "arguments": {
-    "filename": "meeting-2025-01-15.md",
-    "content": "# Project Meeting - January 15, 2025\n\n## Attendees\n- Alice\n- Bob\n- Charlie\n\n## Agenda\n1. Q4 Review\n2. Q1 Planning\n3. Resource allocation\n\n## Action Items\n- [ ] Alice: Prepare budget report\n- [ ] Bob: Schedule client calls\n- [ ] Charlie: Update documentation\n\n## Next Meeting\nJanuary 22, 2025 at 2:00 PM",
-    "encoding": "utf8"
-  }
-}
-```
-
----
-
-### Storing and Retrieving Binary Data
-
-**User request:**
-
-> "Download the icon I saved earlier as base64"
-
-**Tool call:**
-
-```json
-{
-  "name": "download_file",
-  "arguments": {
-    "filename": "icon.png",
-    "encoding": "base64"
+    "filename": "logo.png",
+    "folder": "IMAGES"
   }
 }
 ```
@@ -290,33 +150,165 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAA
 
 ---
 
-### Organizing Files
+### Get Image Information
 
-**Workflow:**
+**User request:**
 
-1. Create directories for organization:
+> "How big is the banner image?"
+
+**Tool call:**
 
 ```json
 {
-  "name": "create_directory",
-  "arguments": { "dirname": "projects" }
+  "name": "get_file_info",
+  "arguments": {
+    "filename": "banner.jpg",
+    "folder": "IMAGES"
+  }
 }
 ```
 
-2. List to verify:
+**Response:**
 
 ```json
 {
-  "name": "list_files",
-  "arguments": {}
+  "name": "banner.jpg",
+  "size": 245760,
+  "sizeHuman": "240 KB",
+  "mimeType": "image/jpeg",
+  "created": "2025-01-15T10:30:00.000Z",
+  "modified": "2025-01-15T10:30:00.000Z",
+  "isDirectory": false
 }
 ```
 
 ---
 
-### Updating a File
+## Video Operations
 
-To update a file, simply upload with the same filename (overwrites):
+### Upload a Video
+
+**User request:**
+
+> "Upload this intro video"
+
+**Tool call:**
+
+```json
+{
+  "name": "upload_video",
+  "arguments": {
+    "filename": "intro.mp4",
+    "content": "<base64-encoded-video>"
+  }
+}
+```
+
+**Response:**
+
+```
+Video "intro.mp4" uploaded to BRANDYFICATION/VIDEOS/
+```
+
+---
+
+### Upload an Animated GIF as Video
+
+**User request:**
+
+> "Save this animation as a video"
+
+**Tool call:**
+
+```json
+{
+  "name": "upload_video",
+  "arguments": {
+    "filename": "animation.gif",
+    "content": "<base64-content>"
+  }
+}
+```
+
+**Response:**
+
+```
+Video "animation.gif" uploaded to BRANDYFICATION/VIDEOS/
+```
+
+---
+
+### List All Videos
+
+**User request:**
+
+> "What videos do I have?"
+
+**Tool call:**
+
+```json
+{
+  "name": "list_videos",
+  "arguments": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "folder": "BRANDYFICATION/VIDEOS",
+  "videos": [
+    {
+      "name": "intro.mp4",
+      "mimeType": "video/mp4",
+      "path": "BRANDYFICATION/VIDEOS/intro.mp4"
+    },
+    {
+      "name": "animation.gif",
+      "mimeType": "image/gif",
+      "path": "BRANDYFICATION/VIDEOS/animation.gif"
+    }
+  ]
+}
+```
+
+---
+
+## General File Operations
+
+### Upload a Text File
+
+**User request:**
+
+> "Save my notes as notes.txt"
+
+**Tool call:**
+
+```json
+{
+  "name": "upload_file",
+  "arguments": {
+    "filename": "notes.txt",
+    "content": "# My Notes\n\n- Item 1\n- Item 2\n- Item 3",
+    "encoding": "utf8"
+  }
+}
+```
+
+**Response:**
+
+```
+File "notes.txt" uploaded to BRANDYFICATION/root/
+```
+
+---
+
+### Upload JSON Configuration
+
+**User request:**
+
+> "Store this configuration"
 
 **Tool call:**
 
@@ -325,7 +317,7 @@ To update a file, simply upload with the same filename (overwrites):
   "name": "upload_file",
   "arguments": {
     "filename": "config.json",
-    "content": "{\n  \"theme\": \"light\",\n  \"language\": \"es\",\n  \"notifications\": false\n}",
+    "content": "{\n  \"theme\": \"dark\",\n  \"language\": \"en\"\n}",
     "encoding": "utf8"
   }
 }
@@ -333,59 +325,241 @@ To update a file, simply upload with the same filename (overwrites):
 
 ---
 
-## Common Use Cases
+### Auto-Routing with upload_file
 
-### Personal Knowledge Base
+The `upload_file` tool automatically routes files to the correct folder:
 
-Store notes, snippets, and references:
+**Image auto-routed:**
 
-```
-storage/
-├── notes/
-├── code-snippets/
-├── bookmarks.json
-└── todo.md
-```
-
-### Configuration Backup
-
-Store application configs:
-
-```
-storage/
-├── vscode-settings.json
-├── bash-aliases.sh
-├── gitconfig
-└── ssh-config
+```json
+{
+  "name": "upload_file",
+  "arguments": {
+    "filename": "photo.png",
+    "content": "<base64>",
+    "encoding": "base64"
+  }
+}
 ```
 
-### Project Assets
+Result: `BRANDYFICATION/IMAGES/photo.png`
 
-Store project files:
+**Video auto-routed:**
 
-```
-storage/
-├── project-a/
-│   ├── requirements.txt
-│   └── notes.md
-├── project-b/
-│   ├── config.yaml
-│   └── schema.sql
-└── templates/
-    ├── readme-template.md
-    └── license.txt
+```json
+{
+  "name": "upload_file",
+  "arguments": {
+    "filename": "clip.mp4",
+    "content": "<base64>",
+    "encoding": "base64"
+  }
+}
 ```
 
-### Data Exchange
+Result: `BRANDYFICATION/VIDEOS/clip.mp4`
 
-Use the file server to exchange data between conversations:
+**Other files stay at root:**
 
-1. Upload data in one conversation
-2. Download and use in another conversation
+```json
+{
+  "name": "upload_file",
+  "arguments": {
+    "filename": "data.csv",
+    "content": "name,value\nfoo,123",
+    "encoding": "utf8"
+  }
+}
+```
+
+Result: `BRANDYFICATION/data.csv`
+
+---
+
+### List All Files
+
+**User request:**
+
+> "Show me everything in storage"
+
+**Tool call:**
+
+```json
+{
+  "name": "list_files",
+  "arguments": {
+    "folder": "all"
+  }
+}
+```
+
+**Response:**
+
+```json
+[
+  {
+    "folder": "BRANDYFICATION",
+    "files": [
+      { "name": "notes.txt", "type": "file" },
+      { "name": "config.json", "type": "file" }
+    ]
+  },
+  {
+    "folder": "BRANDYFICATION/IMAGES",
+    "files": [
+      { "name": "logo.png", "type": "image/png" },
+      { "name": "banner.jpg", "type": "image/jpeg" }
+    ]
+  },
+  {
+    "folder": "BRANDYFICATION/VIDEOS",
+    "files": [
+      { "name": "intro.mp4", "type": "video/mp4" }
+    ]
+  }
+]
+```
+
+---
+
+### Delete a File
+
+**User request:**
+
+> "Delete the old logo"
+
+**Tool call:**
+
+```json
+{
+  "name": "delete_file",
+  "arguments": {
+    "filename": "old-logo.png",
+    "folder": "IMAGES"
+  }
+}
+```
+
+**Response:**
+
+```
+File "old-logo.png" deleted successfully
+```
+
+---
+
+### Create a Custom Directory
+
+**User request:**
+
+> "Create an archive folder"
+
+**Tool call:**
+
+```json
+{
+  "name": "create_directory",
+  "arguments": {
+    "dirname": "archive"
+  }
+}
+```
+
+**Response:**
+
+```
+Directory "archive" created successfully in BRANDYFICATION/
+```
+
+---
+
+## Common Workflows
+
+### Image Gallery Workflow
+
+1. **Upload images:**
+
+```json
+{ "name": "upload_image", "arguments": { "filename": "photo-001.jpg", "content": "<base64>" } }
+{ "name": "upload_image", "arguments": { "filename": "photo-002.jpg", "content": "<base64>" } }
+{ "name": "upload_image", "arguments": { "filename": "photo-003.jpg", "content": "<base64>" } }
+```
+
+2. **List all images:**
+
+```json
+{ "name": "list_images", "arguments": {} }
+```
+
+3. **Get info on a specific image:**
+
+```json
+{ "name": "get_file_info", "arguments": { "filename": "photo-001.jpg", "folder": "IMAGES" } }
+```
+
+---
+
+### Project Assets Workflow
+
+Store project assets with organization:
+
+```text
+BRANDYFICATION/
+├── IMAGES/
+│   ├── logo.png
+│   ├── icon-16.png
+│   ├── icon-32.png
+│   └── banner.jpg
+├── VIDEOS/
+│   └── demo.mp4
+├── project-config.json
+└── README.md
+```
+
+---
+
+### Media Library Organization
+
+```text
+BRANDYFICATION/
+├── IMAGES/
+│   ├── avatars/          (custom directory)
+│   ├── thumbnails/       (custom directory)
+│   ├── hero.jpg
+│   └── background.png
+├── VIDEOS/
+│   ├── tutorials/        (custom directory)
+│   ├── intro.mp4
+│   └── outro.mp4
+└── manifest.json
+```
 
 ---
 
 ## Error Handling Examples
+
+### Invalid Image Format
+
+**Tool call:**
+
+```json
+{
+  "name": "upload_image",
+  "arguments": {
+    "filename": "document.pdf",
+    "content": "<base64>"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [{ "type": "text", "text": "Error: \".pdf\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr" }],
+  "isError": true
+}
+```
 
 ### File Not Found
 
@@ -395,7 +569,8 @@ Use the file server to exchange data between conversations:
 {
   "name": "download_file",
   "arguments": {
-    "filename": "nonexistent.txt"
+    "filename": "nonexistent.png",
+    "folder": "IMAGES"
   }
 }
 ```
@@ -404,36 +579,7 @@ Use the file server to exchange data between conversations:
 
 ```json
 {
-  "content": [
-    { "type": "text", "text": "Error: File \"nonexistent.txt\" not found" }
-  ],
-  "isError": true
-}
-```
-
-### Delete Non-existent File
-
-**Tool call:**
-
-```json
-{
-  "name": "delete_file",
-  "arguments": {
-    "filename": "already-deleted.txt"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "Error: Could not delete \"already-deleted.txt\". File may not exist."
-    }
-  ],
+  "content": [{ "type": "text", "text": "Error: File \"nonexistent.png\" not found" }],
   "isError": true
 }
 ```
@@ -442,9 +588,10 @@ Use the file server to exchange data between conversations:
 
 ## Tips and Tricks
 
-1. **Use descriptive filenames** - Include dates, project names, or categories
-2. **Use JSON for structured data** - Easy to read and modify
-3. **Use Markdown for notes** - Formatted text that's still readable as plain text
-4. **Create directories first** - Organize before storing many files
-5. **Check file info before downloading** - Verify file exists and check size
-6. **Use base64 for binary files** - Images, PDFs, etc.
+1. **Use `upload_image` for images** - It validates format and always routes to IMAGES/
+2. **Use `upload_video` for videos** - It validates format and always routes to VIDEOS/
+3. **Use `upload_file` for auto-routing** - It automatically detects type and routes accordingly
+4. **Use `list_images`/`list_videos`** for focused listings
+5. **Use `list_files` with `folder: "all"`** for a complete overview
+6. **Check file info before downloading** - Verify size and type
+7. **Use descriptive filenames** - Include dates, versions, or project names

@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Hosting MCP Server - Documentation</title>
+    <title>BRANDYFICATION - MCP File Hosting Server</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #0ea5e9;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --error: #ef4444;
+            --primary: #ff6b9d;
+            --primary-dark: #e91e63;
+            --secondary: #9c27b0;
+            --accent: #00bcd4;
+            --bg-dark: #0a0a0f;
+            --bg-card: #151520;
+            --bg-card-hover: #1e1e2d;
+            --text: #f8f8f8;
+            --text-muted: #9ca3af;
+            --border: #2d2d3d;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
         }
 
         * {
@@ -27,11 +30,25 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, sans-serif;
             background: var(--bg-dark);
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.7;
             min-height: 100vh;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(156, 39, 176, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 188, 212, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .container {
@@ -42,66 +59,99 @@
 
         header {
             text-align: center;
-            padding: 3rem 0;
+            padding: 4rem 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 3rem;
         }
 
         .logo {
-            font-size: 3rem;
+            font-size: 4rem;
             margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-weight: 800;
+            letter-spacing: -1px;
         }
 
         .tagline {
             color: var(--text-muted);
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
         }
 
-        .version-badge {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 0.25rem 0.75rem;
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
             border-radius: 9999px;
             font-size: 0.875rem;
-            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .badge:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .badge.primary {
+            background: var(--gradient);
+            border: none;
+            font-weight: 600;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1.5rem;
             margin-bottom: 3rem;
         }
 
         .card {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 16px;
+            padding: 1.75rem;
             border: 1px solid var(--border);
             transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
             background: var(--bg-card-hover);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
             border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(255, 107, 157, 0.1);
         }
 
         .card-icon {
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
         }
 
@@ -114,34 +164,55 @@
         .card p {
             color: var(--text-muted);
             font-size: 0.95rem;
+            flex-grow: 1;
+        }
+
+        .card-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 107, 157, 0.1);
+            color: var(--primary);
+            border-radius: 4px;
+            margin-top: 1rem;
+            width: fit-content;
         }
 
         .section-title {
             font-size: 1.5rem;
             margin-bottom: 1.5rem;
-            color: var(--text);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem;
             margin-bottom: 3rem;
         }
 
         .tool-card {
             background: var(--bg-card);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 1.25rem;
             border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent);
+        }
+
+        .tool-card.highlight {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.05), rgba(156, 39, 176, 0.05));
         }
 
         .tool-name {
-            font-family: 'Consolas', 'Monaco', monospace;
-            color: var(--secondary);
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            color: var(--accent);
             font-size: 1rem;
             margin-bottom: 0.5rem;
         }
@@ -153,7 +224,7 @@
 
         .quick-start {
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 2rem;
             border: 1px solid var(--border);
             margin-bottom: 3rem;
@@ -163,14 +234,15 @@
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            font-size: 1.5rem;
         }
 
         .code-block {
             background: var(--bg-dark);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'Consolas', 'Monaco', monospace;
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
             font-size: 0.9rem;
             overflow-x: auto;
             margin: 1rem 0;
@@ -178,7 +250,7 @@
         }
 
         .code-block code {
-            color: var(--text);
+            color: var(--accent);
         }
 
         .step {
@@ -188,10 +260,10 @@
         }
 
         .step-number {
-            background: var(--primary);
+            background: var(--gradient);
             color: white;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -203,6 +275,7 @@
 
         .step-content h4 {
             margin-bottom: 0.25rem;
+            font-size: 1.1rem;
         }
 
         .step-content p {
@@ -212,7 +285,7 @@
 
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 3rem;
         }
@@ -221,10 +294,16 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 1rem;
+            padding: 1rem 1.25rem;
             background: var(--bg-card);
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
         }
 
         .feature-icon {
@@ -235,9 +314,77 @@
             font-size: 0.95rem;
         }
 
+        .storage-info {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(156, 39, 176, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .storage-info h2 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .folder-structure {
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            background: var(--bg-dark);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+
+        .folder-structure .folder {
+            color: var(--primary);
+        }
+
+        .folder-structure .desc {
+            color: var(--text-muted);
+        }
+
+        .formats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .format-card {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .format-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .format-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .format-list span {
+            background: var(--bg-card);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
         footer {
             text-align: center;
-            padding: 2rem 0;
+            padding: 3rem 0;
             border-top: 1px solid var(--border);
             color: var(--text-muted);
         }
@@ -245,10 +392,30 @@
         footer a {
             color: var(--primary);
             text-decoration: none;
+            transition: color 0.3s ease;
         }
 
         footer a:hover {
-            text-decoration: underline;
+            color: var(--secondary);
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-decoration: none;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .github-link:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .status-indicator {
@@ -256,7 +423,7 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.5rem 1rem;
-            background: rgba(34, 197, 94, 0.1);
+            background: rgba(76, 175, 80, 0.1);
             border: 1px solid var(--success);
             border-radius: 9999px;
             color: var(--success);
@@ -269,57 +436,111 @@
             height: 8px;
             background: var(--success);
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            animation: blink 2s infinite;
         }
 
-        @keyframes pulse {
+        @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
 
-        .footnote {
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .tagline { font-size: 1rem; }
+            .container { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <div class="bg-pattern"></div>
     <div class="container">
         <header>
-            <div class="logo">📁</div>
-            <h1>File Hosting MCP Server</h1>
-            <p class="tagline">A lightweight Model Context Protocol server for file storage operations</p>
-            <span class="version-badge">v1.0.0</span>
+            <div class="logo">🌸</div>
+            <h1>BRANDYFICATION</h1>
+            <p class="tagline">MCP File Hosting Server for Images & Videos</p>
+            <div class="badges">
+                <span class="badge primary">v1.0.0</span>
+                <span class="badge">📦 MCP Protocol</span>
+                <span class="badge">🖼️ 20+ Image Formats</span>
+                <span class="badge">🎬 Video Support</span>
+                <span class="badge">🔒 Secure Storage</span>
+            </div>
             <div class="status-indicator">
                 <span class="status-dot"></span>
-                MCP Compatible
+                Production Ready
             </div>
         </header>
 
+        <section class="storage-info">
+            <h2>📂 BRANDYFICATION Storage</h2>
+            <p>Files are automatically organized into dedicated folders based on type:</p>
+            <div class="folder-structure">
+                <span class="folder">BRANDYFICATION/</span><br>
+                ├── <span class="folder">IMAGES/</span> <span class="desc">← All image files (20+ formats)</span><br>
+                ├── <span class="folder">VIDEOS/</span> <span class="desc">← MP4 and GIF videos</span><br>
+                └── <span class="desc">Other files stored at root level</span>
+            </div>
+            <div class="formats-grid">
+                <div class="format-card">
+                    <h4>🖼️ Image Formats</h4>
+                    <div class="format-list">
+                        <span>PNG</span><span>JPG</span><span>JPEG</span><span>GIF</span>
+                        <span>BMP</span><span>WEBP</span><span>SVG</span><span>ICO</span>
+                        <span>TIFF</span><span>AVIF</span><span>HEIC</span><span>HEIF</span>
+                        <span>RAW</span><span>PSD</span><span>AI</span><span>EPS</span>
+                        <span>PCX</span><span>TGA</span><span>EXR</span><span>HDR</span>
+                    </div>
+                </div>
+                <div class="format-card">
+                    <h4>🎬 Video Formats</h4>
+                    <div class="format-list">
+                        <span>MP4</span><span>GIF</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="features">
             <div class="feature">
-                <span class="feature-icon">⚡</span>
-                <span>Fast & Lightweight</span>
+                <span class="feature-icon">🖼️</span>
+                <span>Image Upload</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🎬</span>
+                <span>Video Upload</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📥</span>
+                <span>File Download</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📋</span>
+                <span>List Files</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🗑️</span>
+                <span>Delete Files</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📁</span>
+                <span>Create Folders</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">ℹ️</span>
+                <span>File Info</span>
             </div>
             <div class="feature">
                 <span class="feature-icon">🔒</span>
-                <span>Secure by Default</span>
+                <span>Path Security</span>
             </div>
             <div class="feature">
-                <span class="feature-icon">📦</span>
-                <span>Zero Dependencies*</span>
+                <span class="feature-icon">📊</span>
+                <span>MIME Types</span>
             </div>
             <div class="feature">
-                <span class="feature-icon">🔧</span>
-                <span>Easy Configuration</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">📄</span>
-                <span>All File Types</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">🌐</span>
-                <span>Cross-Platform</span>
+                <span class="feature-icon">🔄</span>
+                <span>Auto-Sort</span>
             </div>
         </section>
 
@@ -328,60 +549,82 @@
             <a href="getting-started.md" class="card">
                 <div class="card-icon">🚀</div>
                 <h3>Getting Started</h3>
-                <p>Installation, setup, and your first file upload in minutes.</p>
+                <p>Installation guide, prerequisites, and your first upload. Get up and running in minutes.</p>
+                <span class="card-tag">Start Here</span>
             </a>
             <a href="api-reference.md" class="card">
                 <div class="card-icon">📖</div>
                 <h3>API Reference</h3>
-                <p>Complete documentation of all tools, parameters, and responses.</p>
+                <p>Complete documentation for all 10 MCP tools including upload_image, upload_video, and more.</p>
+                <span class="card-tag">10 Tools</span>
             </a>
             <a href="configuration.md" class="card">
                 <div class="card-icon">⚙️</div>
                 <h3>Configuration</h3>
-                <p>Environment variables, storage options, and customization.</p>
-            </a>
-            <a href="security.md" class="card">
-                <div class="card-icon">🔐</div>
-                <h3>Security</h3>
-                <p>Security features, best practices, and considerations.</p>
+                <p>Environment variables, MCP client setup, storage options, and advanced configuration.</p>
+                <span class="card-tag">Customization</span>
             </a>
             <a href="examples.md" class="card">
                 <div class="card-icon">💡</div>
                 <h3>Examples</h3>
-                <p>Real-world usage examples and common patterns.</p>
+                <p>Real-world usage patterns, common workflows, and practical code samples.</p>
+                <span class="card-tag">Copy & Paste</span>
+            </a>
+            <a href="security.md" class="card">
+                <div class="card-icon">🔒</div>
+                <h3>Security</h3>
+                <p>Path traversal prevention, isolated storage, permission hardening, and best practices.</p>
+                <span class="card-tag">Important</span>
             </a>
             <a href="troubleshooting.md" class="card">
                 <div class="card-icon">🔧</div>
                 <h3>Troubleshooting</h3>
-                <p>Common issues, error messages, and solutions.</p>
+                <p>Common issues, error messages, debugging tips, and solutions.</p>
+                <span class="card-tag">Help</span>
             </a>
         </div>
 
-        <h2 class="section-title">🛠️ Available Tools</h2>
+        <h2 class="section-title">🛠️ Available Tools (10)</h2>
         <div class="tools-grid">
+            <div class="tool-card highlight">
+                <div class="tool-name">upload_image</div>
+                <p class="tool-desc">Upload images to BRANDYFICATION/IMAGES (20+ formats supported)</p>
+            </div>
+            <div class="tool-card highlight">
+                <div class="tool-name">upload_video</div>
+                <p class="tool-desc">Upload videos to BRANDYFICATION/VIDEOS (MP4, GIF)</p>
+            </div>
             <div class="tool-card">
                 <div class="tool-name">upload_file</div>
-                <p class="tool-desc">Upload files to storage with UTF-8 or base64 encoding</p>
+                <p class="tool-desc">Upload any file with auto-routing to correct folder</p>
             </div>
             <div class="tool-card">
                 <div class="tool-name">download_file</div>
-                <p class="tool-desc">Download and read files from storage</p>
+                <p class="tool-desc">Download files with auto-detected encoding</p>
+            </div>
+            <div class="tool-card highlight">
+                <div class="tool-name">list_images</div>
+                <p class="tool-desc">List all images in BRANDYFICATION/IMAGES</p>
+            </div>
+            <div class="tool-card highlight">
+                <div class="tool-name">list_videos</div>
+                <p class="tool-desc">List all videos in BRANDYFICATION/VIDEOS</p>
             </div>
             <div class="tool-card">
                 <div class="tool-name">list_files</div>
-                <p class="tool-desc">List all files and directories in storage</p>
+                <p class="tool-desc">List files in any or all folders</p>
             </div>
             <div class="tool-card">
                 <div class="tool-name">delete_file</div>
-                <p class="tool-desc">Remove files from storage permanently</p>
+                <p class="tool-desc">Remove files from storage</p>
             </div>
             <div class="tool-card">
                 <div class="tool-name">get_file_info</div>
-                <p class="tool-desc">Get file metadata like size and dates</p>
+                <p class="tool-desc">Get file metadata, size, and MIME type</p>
             </div>
             <div class="tool-card">
                 <div class="tool-name">create_directory</div>
-                <p class="tool-desc">Create subdirectories for organization</p>
+                <p class="tool-desc">Create custom subdirectories</p>
             </div>
         </div>
 
@@ -391,10 +634,12 @@
             <div class="step">
                 <span class="step-number">1</span>
                 <div class="step-content">
-                    <h4>Install Dependencies</h4>
-                    <p>Clone the repository and install packages</p>
+                    <h4>Clone & Install</h4>
+                    <p>Clone the repository and install dependencies</p>
                     <div class="code-block">
-                        <code>npm install</code>
+                        <code>git clone https://github.com/BambiSleepChurch/bambisleep-church-storage.git
+cd bambisleep-church-storage
+npm install</code>
                     </div>
                 </div>
             </div>
@@ -414,15 +659,15 @@
                 <span class="step-number">3</span>
                 <div class="step-content">
                     <h4>Configure Your MCP Client</h4>
-                    <p>Add to your Claude Desktop or MCP client configuration</p>
+                    <p>Add to your Claude Desktop or VS Code MCP configuration</p>
                     <div class="code-block">
                         <code>{
   "mcpServers": {
-    "filehosting": {
+    "brandyfication": {
       "command": "node",
-      "args": ["path/to/dist/index.js"],
+      "args": ["/path/to/dist/index.js"],
       "env": {
-        "STORAGE_DIR": "/path/to/storage"
+        "STORAGE_DIR": "/path/to/BRANDYFICATION"
       }
     }
   }
@@ -435,15 +680,18 @@
                 <span class="step-number">4</span>
                 <div class="step-content">
                     <h4>Start Using!</h4>
-                    <p>The file hosting tools are now available in your MCP client</p>
+                    <p>The BRANDYFICATION tools are now available in your MCP client. Try: "Upload an image" or "List all images"</p>
                 </div>
             </div>
         </section>
 
         <footer>
-            <p>File Hosting MCP Server &copy; 2025</p>
+            <p>BRANDYFICATION MCP Server &copy; 2025</p>
             <p>Built with the <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context Protocol</a></p>
-            <p class="footnote">* Only requires @modelcontextprotocol/sdk</p>
+            <a href="https://github.com/BambiSleepChurch/bambisleep-church-storage" class="github-link" target="_blank" rel="noopener">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                View on GitHub
+            </a>
         </footer>
     </div>
 </body>
