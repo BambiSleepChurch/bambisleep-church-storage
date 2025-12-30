@@ -4,10 +4,10 @@ This directory contains systemd service files for running BRANDYFICATION as a sy
 
 ## Services
 
-| Service                        | Description            | Port  |
-| ------------------------------ | ---------------------- | ----- |
+| Service                        | Description             | Port  |
+| ------------------------------ | ----------------------- | ----- |
 | `brandyfication-mcp.service`   | MCP file hosting server | stdio |
-| `brandyfication-agent.service` | Web frontend agent     | 3000  |
+| `brandyfication-agent.service` | Web frontend agent      | 3000  |
 
 ## Quick Install
 
@@ -173,6 +173,7 @@ The service files include security hardening:
 ### Service won't start
 
 Check logs:
+
 ```bash
 sudo journalctl -u brandyfication-agent -n 50 --no-pager
 ```
@@ -180,6 +181,7 @@ sudo journalctl -u brandyfication-agent -n 50 --no-pager
 ### Permission denied
 
 Fix ownership:
+
 ```bash
 sudo chown -R brandyfication:brandyfication /var/lib/brandyfication
 ```
@@ -187,6 +189,7 @@ sudo chown -R brandyfication:brandyfication /var/lib/brandyfication
 ### Port already in use
 
 Check what's using port 3000:
+
 ```bash
 sudo lsof -i :3000
 ```

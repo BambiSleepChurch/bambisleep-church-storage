@@ -23,12 +23,12 @@ This ensures that:
 
 **Example attacks that are blocked:**
 
-| Input | Result |
-| ----- | ------ |
-| `../secret.txt` | `storage/secret.txt` |
-| `../../etc/passwd` | `storage/passwd` |
-| `/etc/shadow` | `storage/shadow` |
-| `C:\Windows\System32\config` | `storage/config` |
+| Input                        | Result               |
+| ---------------------------- | -------------------- |
+| `../secret.txt`              | `storage/secret.txt` |
+| `../../etc/passwd`           | `storage/passwd`     |
+| `/etc/shadow`                | `storage/shadow`     |
+| `C:\Windows\System32\config` | `storage/config`     |
 
 ### Isolated Storage
 
