@@ -8,12 +8,12 @@ This guide covers all configuration options for the BRANDYFICATION MCP Server.
 
 The root directory for BRANDYFICATION storage. The server automatically creates `IMAGES` and `VIDEOS` subdirectories.
 
-| Property     | Value |
-|--------------|-------|
-| **Variable** | `STORAGE_DIR` |
-| **Type**     | String (file path) |
+| Property     | Value                                              |
+| ------------ | -------------------------------------------------- |
+| **Variable** | `STORAGE_DIR`                                      |
+| **Type**     | String (file path)                                 |
 | **Default**  | `./BRANDYFICATION` (relative to working directory) |
-| **Required** | No |
+| **Required** | No                                                 |
 
 #### Directory Structure
 
@@ -101,12 +101,12 @@ Configuration file locations:
 
 #### Configuration Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `command` | string | The executable to run (`node`) |
-| `args` | string[] | Arguments passed to the command |
-| `env` | object | Environment variables to set |
-| `cwd` | string | Working directory (optional) |
+| Option    | Type     | Description                     |
+| --------- | -------- | ------------------------------- |
+| `command` | string   | The executable to run (`node`)  |
+| `args`    | string[] | Arguments passed to the command |
+| `env`     | object   | Environment variables to set    |
+| `cwd`     | string   | Working directory (optional)    |
 
 ### VS Code MCP
 
@@ -150,11 +150,11 @@ BRANDYFICATION/
 
 ### File Routing Rules
 
-| File Type | Extensions | Destination |
-|-----------|------------|-------------|
-| Images | .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr | `BRANDYFICATION/IMAGES/` |
-| Videos | .mp4, .gif | `BRANDYFICATION/VIDEOS/` |
-| Other | All other extensions | `BRANDYFICATION/` (root) |
+| File Type | Extensions                                                                                                                  | Destination              |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Images    | .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr | `BRANDYFICATION/IMAGES/` |
+| Videos    | .mp4, .gif                                                                                                                  | `BRANDYFICATION/VIDEOS/` |
+| Other     | All other extensions                                                                                                        | `BRANDYFICATION/` (root) |
 
 > **Note:** GIF files can be routed to either IMAGES or VIDEOS depending on the tool used (`upload_image` vs `upload_video`).
 

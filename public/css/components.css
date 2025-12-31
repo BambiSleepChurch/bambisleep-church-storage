@@ -1,0 +1,260 @@
+/* Brandynette Video Player - UI Components
+ * Buttons, cards, controls, inputs
+ */
+
+@layer components {
+  /* ========================================================================
+     GLASS BUBBLE BASE
+     ======================================================================== */
+  .glass-bubble {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--bubble-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+  }
+
+  /* ========================================================================
+     BUTTONS
+     ======================================================================== */
+  .bubble-button {
+    background: linear-gradient(135deg, var(--button-color), var(--secondary-alt));
+    color: white;
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-family: var(--font-family-primary);
+    -webkit-backdrop-filter: var(--blur-md);
+    backdrop-filter: var(--blur-md);
+    position: relative;
+    overflow: hidden;
+    margin: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+
+  .bubble-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .bubble-button:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .bubble-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(223, 4, 113, 0.3);
+    border-color: var(--glow-pink);
+  }
+
+  .bubble-button:active {
+    transform: translateY(0);
+  }
+
+  .bubble-button.selected {
+    background: linear-gradient(135deg, var(--tertiary-alt), var(--nav-alt));
+    box-shadow: 0 0 20px var(--glow-cyan);
+    border-color: var(--glow-cyan);
+  }
+
+  /* ========================================================================
+     VIDEO CARD
+     ======================================================================== */
+  .video-card {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--bubble-shadow);
+  }
+
+  .video-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--glow-cyan);
+    box-shadow: 0 15px 40px rgba(0, 255, 255, 0.3);
+  }
+
+  .video-card h3 {
+    font-size: var(--text-md);
+    margin-bottom: var(--space-2);
+    color: var(--nav-alt);
+    word-break: break-word;
+  }
+
+  .video-card p {
+    font-size: var(--text-sm);
+    color: rgba(255, 255, 255, 0.7);
+    font-family: var(--font-family-mono);
+  }
+
+  /* ========================================================================
+     CONTROLS
+     ======================================================================== */
+  .controls {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .control-button {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-md);
+    backdrop-filter: var(--blur-md);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--text-lg);
+  }
+
+  .control-button:hover {
+    background: var(--button-color);
+    border-color: var(--glow-pink);
+    box-shadow: 0 0 15px var(--glow-pink);
+  }
+
+  /* ========================================================================
+     PROGRESS BAR
+     ======================================================================== */
+  .progress-container {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: var(--glass-bg);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    margin: var(--space-3) 0;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--glow-cyan), var(--glow-pink));
+    border-radius: var(--radius-full);
+    transition: width var(--transition-fast);
+    box-shadow: 0 0 10px var(--glow-cyan);
+  }
+
+  /* ========================================================================
+     SLIDERS
+     ======================================================================== */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--glass-bg);
+    border-radius: var(--radius-full);
+    outline: none;
+    margin: var(--space-2) 0;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-pink));
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--glow-pink);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-pink));
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px var(--glow-pink);
+  }
+
+  /* ========================================================================
+     LOADING STATE
+     ======================================================================== */
+  .loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--glow-cyan);
+    border-radius: var(--radius-full);
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ========================================================================
+     ERROR STATE
+     ======================================================================== */
+  .error-message {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-medium) solid var(--error);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    color: var(--error);
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
+  }
+
+  /* ========================================================================
+     GLOW EFFECTS
+     ======================================================================== */
+  .glow-effect {
+    filter: drop-shadow(0 0 10px var(--glow-cyan)) 
+            drop-shadow(0 0 20px var(--glow-pink)) 
+            drop-shadow(0 0 30px var(--glow-purple));
+    animation: pulse-glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-glow {
+    0% {
+      filter: drop-shadow(0 0 5px var(--glow-cyan)) 
+              drop-shadow(0 0 10px var(--glow-pink));
+    }
+    100% {
+      filter: drop-shadow(0 0 15px var(--glow-cyan)) 
+              drop-shadow(0 0 25px var(--glow-pink)) 
+              drop-shadow(0 0 35px var(--glow-purple));
+    }
+  }
+}

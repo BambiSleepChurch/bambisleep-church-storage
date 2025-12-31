@@ -1,0 +1,120 @@
+/* Brandynette Video Player - Layout System
+ * Page structure, containers, and responsive grid
+ */
+
+@layer layout {
+  /* ========================================================================
+     MAIN APP CONTAINER
+     ======================================================================== */
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+  }
+
+  /* ========================================================================
+     HEADER
+     ======================================================================== */
+  .app-header {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border-bottom: var(--border-width-thin) solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .app-header h1 {
+    font-size: var(--text-2xl);
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px var(--glow-cyan));
+  }
+
+  /* ========================================================================
+     MAIN CONTENT CONTAINER
+     ======================================================================== */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+    width: 100%;
+  }
+
+  /* Compact container for tighter spacing */
+  .compact-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+  }
+
+  /* No spacing variant */
+  .no-spacing {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ========================================================================
+     GRID LAYOUTS
+     ======================================================================== */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  /* ========================================================================
+     PLAYER CONTAINER
+     ======================================================================== */
+  .player-container {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-glass);
+    margin-bottom: var(--space-6);
+  }
+
+  .player-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .player-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ========================================================================
+     RESPONSIVE BREAKPOINTS
+     ======================================================================== */
+  @media (max-width: 768px) {
+    .container {
+      padding: var(--space-4) var(--space-3);
+    }
+
+    .video-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    .app-header h1 {
+      font-size: var(--text-xl);
+    }
+  }
+}

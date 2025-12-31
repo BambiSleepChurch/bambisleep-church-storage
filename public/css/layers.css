@@ -1,0 +1,16 @@
+/* Brandynette Video Player - CSS Cascade Layers
+ * Establishes proper layer order for cascade control
+ * Layers declared here in priority order (first = lowest priority)
+ */
+
+@layer reset, base, layout, components, features, utilities;
+
+/* Layer Purpose Documentation:
+ * 
+ * reset    - CSS resets, normalize styles
+ * base     - Root variables, typography, body styles
+ * layout   - Page structure, grid, flexbox containers
+ * components - Reusable UI components (buttons, video player, controls)
+ * features - Feature-specific styles (video list, downloads, queue)
+ * utilities - Helper classes, overrides, states
+ */

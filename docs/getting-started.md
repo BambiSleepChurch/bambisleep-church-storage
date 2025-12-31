@@ -72,8 +72,8 @@ Press `Ctrl+C` to stop the server.
 
 ### Environment Variables
 
-| Variable      | Description                            | Default           |
-| ------------- | -------------------------------------- | ----------------- |
+| Variable      | Description                               | Default            |
+| ------------- | ----------------------------------------- | ------------------ |
 | `STORAGE_DIR` | Root directory for BRANDYFICATION storage | `./BRANDYFICATION` |
 
 ### Setting the Storage Directory

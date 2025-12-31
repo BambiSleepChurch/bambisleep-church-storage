@@ -24,12 +24,12 @@ This ensures that:
 
 **Example attacks that are blocked:**
 
-| Input | Result |
-|-------|--------|
-| `../secret.png` | `BRANDYFICATION/IMAGES/secret.png` |
-| `../../etc/passwd` | `BRANDYFICATION/passwd` |
-| `/etc/shadow` | `BRANDYFICATION/shadow` |
-| `C:\Windows\System32\config` | `BRANDYFICATION/config` |
+| Input                        | Result                             |
+| ---------------------------- | ---------------------------------- |
+| `../secret.png`              | `BRANDYFICATION/IMAGES/secret.png` |
+| `../../etc/passwd`           | `BRANDYFICATION/passwd`            |
+| `/etc/shadow`                | `BRANDYFICATION/shadow`            |
+| `C:\Windows\System32\config` | `BRANDYFICATION/config`            |
 
 ### Isolated Storage
 
@@ -201,7 +201,7 @@ If running in a containerized environment:
 services:
   brandyfication:
     image: brandyfication-mcp
-    network_mode: none  # No network access
+    network_mode: none # No network access
     volumes:
       - ./BRANDYFICATION:/data/BRANDYFICATION
 ```

@@ -211,7 +211,10 @@ PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, 
 2. **Specify the correct folder:**
 
 ```json
-{ "name": "download_file", "arguments": { "filename": "logo.png", "folder": "IMAGES" } }
+{
+  "name": "download_file",
+  "arguments": { "filename": "logo.png", "folder": "IMAGES" }
+}
 ```
 
 3. **Check exact filename (case-sensitive on Linux/macOS):**
@@ -404,6 +407,7 @@ A: GIF is primarily an image format. Use `upload_video` explicitly if you want a
 
 **Q: How do I move a file from IMAGES to VIDEOS?**
 A: Download the file, delete it from the source, then upload to the destination:
+
 1. `download_file` (folder: "IMAGES")
 2. `delete_file` (folder: "IMAGES")
 3. `upload_video` (to put in VIDEOS)

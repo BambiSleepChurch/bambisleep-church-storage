@@ -413,9 +413,7 @@ Result: `BRANDYFICATION/data.csv`
   },
   {
     "folder": "BRANDYFICATION/VIDEOS",
-    "files": [
-      { "name": "intro.mp4", "type": "video/mp4" }
-    ]
+    "files": [{ "name": "intro.mp4", "type": "video/mp4" }]
   }
 ]
 ```
@@ -494,7 +492,10 @@ Directory "archive" created successfully in BRANDYFICATION/
 3. **Get info on a specific image:**
 
 ```json
-{ "name": "get_file_info", "arguments": { "filename": "photo-001.jpg", "folder": "IMAGES" } }
+{
+  "name": "get_file_info",
+  "arguments": { "filename": "photo-001.jpg", "folder": "IMAGES" }
+}
 ```
 
 ---
@@ -556,7 +557,12 @@ BRANDYFICATION/
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Error: \".pdf\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr" }],
+  "content": [
+    {
+      "type": "text",
+      "text": "Error: \".pdf\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr"
+    }
+  ],
   "isError": true
 }
 ```
@@ -579,7 +585,9 @@ BRANDYFICATION/
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Error: File \"nonexistent.png\" not found" }],
+  "content": [
+    { "type": "text", "text": "Error: File \"nonexistent.png\" not found" }
+  ],
   "isError": true
 }
 ```

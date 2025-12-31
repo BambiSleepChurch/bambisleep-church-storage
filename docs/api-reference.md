@@ -6,18 +6,18 @@ Complete documentation for all BRANDYFICATION MCP Server tools and resources.
 
 The BRANDYFICATION MCP Server provides **10 tools** for managing images, videos, and files:
 
-| Tool | Description |
-|------|-------------|
-| `upload_image` | Upload images to BRANDYFICATION/IMAGES |
-| `upload_video` | Upload videos to BRANDYFICATION/VIDEOS |
-| `upload_file` | Upload any file (auto-routes to correct folder) |
-| `download_file` | Download/read files from storage |
-| `list_files` | List files in any or all folders |
-| `list_images` | List all images in BRANDYFICATION/IMAGES |
-| `list_videos` | List all videos in BRANDYFICATION/VIDEOS |
-| `delete_file` | Delete files from storage |
-| `get_file_info` | Get file metadata and MIME type |
-| `create_directory` | Create custom subdirectories |
+| Tool               | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `upload_image`     | Upload images to BRANDYFICATION/IMAGES          |
+| `upload_video`     | Upload videos to BRANDYFICATION/VIDEOS          |
+| `upload_file`      | Upload any file (auto-routes to correct folder) |
+| `download_file`    | Download/read files from storage                |
+| `list_files`       | List files in any or all folders                |
+| `list_images`      | List all images in BRANDYFICATION/IMAGES        |
+| `list_videos`      | List all videos in BRANDYFICATION/VIDEOS        |
+| `delete_file`      | Delete files from storage                       |
+| `get_file_info`    | Get file metadata and MIME type                 |
+| `create_directory` | Create custom subdirectories                    |
 
 ---
 
@@ -29,10 +29,10 @@ Upload an image file to BRANDYFICATION/IMAGES.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
+| Parameter  | Type   | Required | Description                             |
+| ---------- | ------ | -------- | --------------------------------------- |
 | `filename` | string | ✅ Yes   | Name of the image file (with extension) |
-| `content`  | string | ✅ Yes   | Base64-encoded image content |
+| `content`  | string | ✅ Yes   | Base64-encoded image content            |
 
 #### Supported Formats
 
@@ -51,7 +51,12 @@ PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, 
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Image \"logo.png\" uploaded to BRANDYFICATION/IMAGES/" }]
+  "content": [
+    {
+      "type": "text",
+      "text": "Image \"logo.png\" uploaded to BRANDYFICATION/IMAGES/"
+    }
+  ]
 }
 ```
 
@@ -59,7 +64,12 @@ PNG, JPG, JPEG, GIF, BMP, WEBP, SVG, ICO, TIFF, AVIF, HEIC, HEIF, RAW, PSD, AI, 
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Error: \".doc\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr" }],
+  "content": [
+    {
+      "type": "text",
+      "text": "Error: \".doc\" is not a supported image format. Supported: .png, .jpg, .jpeg, .gif, .bmp, .webp, .svg, .ico, .tiff, .tif, .avif, .heic, .heif, .raw, .psd, .ai, .eps, .pcx, .tga, .exr, .hdr"
+    }
+  ],
   "isError": true
 }
 ```
@@ -84,10 +94,12 @@ None required.
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "{\n  \"folder\": \"BRANDYFICATION/IMAGES\",\n  \"images\": [\n    {\n      \"name\": \"logo.png\",\n      \"mimeType\": \"image/png\",\n      \"path\": \"BRANDYFICATION/IMAGES/logo.png\"\n    },\n    {\n      \"name\": \"banner.jpg\",\n      \"mimeType\": \"image/jpeg\",\n      \"path\": \"BRANDYFICATION/IMAGES/banner.jpg\"\n    }\n  ]\n}"
-  }]
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"folder\": \"BRANDYFICATION/IMAGES\",\n  \"images\": [\n    {\n      \"name\": \"logo.png\",\n      \"mimeType\": \"image/png\",\n      \"path\": \"BRANDYFICATION/IMAGES/logo.png\"\n    },\n    {\n      \"name\": \"banner.jpg\",\n      \"mimeType\": \"image/jpeg\",\n      \"path\": \"BRANDYFICATION/IMAGES/banner.jpg\"\n    }\n  ]\n}"
+    }
+  ]
 }
 ```
 
@@ -101,10 +113,10 @@ Upload a video file to BRANDYFICATION/VIDEOS.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
+| Parameter  | Type   | Required | Description                             |
+| ---------- | ------ | -------- | --------------------------------------- |
 | `filename` | string | ✅ Yes   | Name of the video file (with extension) |
-| `content`  | string | ✅ Yes   | Base64-encoded video content |
+| `content`  | string | ✅ Yes   | Base64-encoded video content            |
 
 #### Supported Formats
 
@@ -123,7 +135,12 @@ MP4, GIF
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Video \"intro.mp4\" uploaded to BRANDYFICATION/VIDEOS/" }]
+  "content": [
+    {
+      "type": "text",
+      "text": "Video \"intro.mp4\" uploaded to BRANDYFICATION/VIDEOS/"
+    }
+  ]
 }
 ```
 
@@ -147,10 +164,12 @@ None required.
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "{\n  \"folder\": \"BRANDYFICATION/VIDEOS\",\n  \"videos\": [\n    {\n      \"name\": \"intro.mp4\",\n      \"mimeType\": \"video/mp4\",\n      \"path\": \"BRANDYFICATION/VIDEOS/intro.mp4\"\n    }\n  ]\n}"
-  }]
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"folder\": \"BRANDYFICATION/VIDEOS\",\n  \"videos\": [\n    {\n      \"name\": \"intro.mp4\",\n      \"mimeType\": \"video/mp4\",\n      \"path\": \"BRANDYFICATION/VIDEOS/intro.mp4\"\n    }\n  ]\n}"
+    }
+  ]
 }
 ```
 
@@ -164,11 +183,11 @@ Upload a file to BRANDYFICATION. Automatically routes to IMAGES or VIDEOS subfol
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `filename` | string | ✅ Yes   | Name of the file to upload |
+| Parameter  | Type   | Required | Description                                            |
+| ---------- | ------ | -------- | ------------------------------------------------------ |
+| `filename` | string | ✅ Yes   | Name of the file to upload                             |
 | `content`  | string | ✅ Yes   | File content (base64 for binary, plain text otherwise) |
-| `encoding` | string | ❌ No    | Encoding: `"base64"` or `"utf8"` (default: utf8) |
+| `encoding` | string | ❌ No    | Encoding: `"base64"` or `"utf8"` (default: utf8)       |
 
 #### Example - Image Upload
 
@@ -214,11 +233,11 @@ Download/read a file from BRANDYFICATION storage.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `filename` | string | ✅ Yes   | Name of the file to download |
+| Parameter  | Type   | Required | Description                                                                                |
+| ---------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `filename` | string | ✅ Yes   | Name of the file to download                                                               |
 | `folder`   | string | ❌ No    | Folder to download from: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
-| `encoding` | string | ❌ No    | Response encoding: `"base64"` or `"utf8"` (auto-detected based on file type) |
+| `encoding` | string | ❌ No    | Response encoding: `"base64"` or `"utf8"` (auto-detected based on file type)               |
 
 #### Example - Download Image
 
@@ -255,8 +274,8 @@ List files in any or all BRANDYFICATION folders.
 
 #### Parameters
 
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
+| Parameter | Type   | Required | Description                                                            |
+| --------- | ------ | -------- | ---------------------------------------------------------------------- |
 | `folder`  | string | ❌ No    | Which folder: `"IMAGES"`, `"VIDEOS"`, `"root"`, `"all"` (default: all) |
 
 #### Example - List All
@@ -277,10 +296,12 @@ List files in any or all BRANDYFICATION folders.
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "[\n  {\n    \"folder\": \"BRANDYFICATION\",\n    \"files\": [{ \"name\": \"config.json\", \"type\": \"file\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/IMAGES\",\n    \"files\": [{ \"name\": \"logo.png\", \"type\": \"image/png\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/VIDEOS\",\n    \"files\": [{ \"name\": \"intro.mp4\", \"type\": \"video/mp4\" }]\n  }\n]"
-  }]
+  "content": [
+    {
+      "type": "text",
+      "text": "[\n  {\n    \"folder\": \"BRANDYFICATION\",\n    \"files\": [{ \"name\": \"config.json\", \"type\": \"file\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/IMAGES\",\n    \"files\": [{ \"name\": \"logo.png\", \"type\": \"image/png\" }]\n  },\n  {\n    \"folder\": \"BRANDYFICATION/VIDEOS\",\n    \"files\": [{ \"name\": \"intro.mp4\", \"type\": \"video/mp4\" }]\n  }\n]"
+    }
+  ]
 }
 ```
 
@@ -292,9 +313,9 @@ Delete a file from BRANDYFICATION storage.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `filename` | string | ✅ Yes   | Name of the file to delete |
+| Parameter  | Type   | Required | Description                                                                                   |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------------------------- |
+| `filename` | string | ✅ Yes   | Name of the file to delete                                                                    |
 | `folder`   | string | ❌ No    | Folder containing the file: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
 
 #### Example
@@ -310,7 +331,9 @@ Delete a file from BRANDYFICATION storage.
 
 ```json
 {
-  "content": [{ "type": "text", "text": "File \"old-logo.png\" deleted successfully" }]
+  "content": [
+    { "type": "text", "text": "File \"old-logo.png\" deleted successfully" }
+  ]
 }
 ```
 
@@ -322,9 +345,9 @@ Get metadata about a file including size, MIME type, and dates.
 
 #### Parameters
 
-| Parameter  | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `filename` | string | ✅ Yes   | Name of the file to inspect |
+| Parameter  | Type   | Required | Description                                                                                   |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------------------------- |
+| `filename` | string | ✅ Yes   | Name of the file to inspect                                                                   |
 | `folder`   | string | ❌ No    | Folder containing the file: `"IMAGES"`, `"VIDEOS"`, `"root"` (auto-detected if not specified) |
 
 #### Example
@@ -340,10 +363,12 @@ Get metadata about a file including size, MIME type, and dates.
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "{\n  \"name\": \"logo.png\",\n  \"size\": 24576,\n  \"sizeHuman\": \"24 KB\",\n  \"mimeType\": \"image/png\",\n  \"created\": \"2025-01-15T10:30:00.000Z\",\n  \"modified\": \"2025-01-15T14:22:00.000Z\",\n  \"isDirectory\": false\n}"
-  }]
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"name\": \"logo.png\",\n  \"size\": 24576,\n  \"sizeHuman\": \"24 KB\",\n  \"mimeType\": \"image/png\",\n  \"created\": \"2025-01-15T10:30:00.000Z\",\n  \"modified\": \"2025-01-15T14:22:00.000Z\",\n  \"isDirectory\": false\n}"
+    }
+  ]
 }
 ```
 
@@ -355,8 +380,8 @@ Create a custom subdirectory in BRANDYFICATION.
 
 #### Parameters
 
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
+| Parameter | Type   | Required | Description                     |
+| --------- | ------ | -------- | ------------------------------- |
 | `dirname` | string | ✅ Yes   | Name of the directory to create |
 
 #### Example
@@ -371,7 +396,12 @@ Create a custom subdirectory in BRANDYFICATION.
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Directory \"archive\" created successfully in BRANDYFICATION/" }]
+  "content": [
+    {
+      "type": "text",
+      "text": "Directory \"archive\" created successfully in BRANDYFICATION/"
+    }
+  ]
 }
 ```
 
@@ -409,25 +439,25 @@ The server responds to `resources/list` requests with all files:
 
 ### Supported MIME Types
 
-| Extension | MIME Type |
-|-----------|-----------|
-| `.png` | `image/png` |
-| `.jpg`, `.jpeg` | `image/jpeg` |
-| `.gif` | `image/gif` |
-| `.bmp` | `image/bmp` |
-| `.webp` | `image/webp` |
-| `.svg` | `image/svg+xml` |
-| `.ico` | `image/x-icon` |
-| `.tiff`, `.tif` | `image/tiff` |
-| `.avif` | `image/avif` |
-| `.heic` | `image/heic` |
-| `.heif` | `image/heif` |
-| `.psd` | `image/vnd.adobe.photoshop` |
-| `.mp4` | `video/mp4` |
-| `.txt` | `text/plain` |
-| `.json` | `application/json` |
-| `.md` | `text/markdown` |
-| (other) | `application/octet-stream` |
+| Extension       | MIME Type                   |
+| --------------- | --------------------------- |
+| `.png`          | `image/png`                 |
+| `.jpg`, `.jpeg` | `image/jpeg`                |
+| `.gif`          | `image/gif`                 |
+| `.bmp`          | `image/bmp`                 |
+| `.webp`         | `image/webp`                |
+| `.svg`          | `image/svg+xml`             |
+| `.ico`          | `image/x-icon`              |
+| `.tiff`, `.tif` | `image/tiff`                |
+| `.avif`         | `image/avif`                |
+| `.heic`         | `image/heic`                |
+| `.heif`         | `image/heif`                |
+| `.psd`          | `image/vnd.adobe.photoshop` |
+| `.mp4`          | `video/mp4`                 |
+| `.txt`          | `text/plain`                |
+| `.json`         | `application/json`          |
+| `.md`           | `text/markdown`             |
+| (other)         | `application/octet-stream`  |
 
 ---
 
@@ -437,16 +467,18 @@ All tools return errors in a consistent format:
 
 ```json
 {
-  "content": [{ "type": "text", "text": "Error: Description of what went wrong" }],
+  "content": [
+    { "type": "text", "text": "Error: Description of what went wrong" }
+  ],
   "isError": true
 }
 ```
 
 ### Common Errors
 
-| Error | Description |
-|-------|-------------|
-| File not found | The specified file does not exist |
-| Invalid format | File extension not supported for the operation |
-| Permission denied | Cannot read/write to storage directory |
-| Unknown tool | The requested tool name is not recognized |
+| Error             | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| File not found    | The specified file does not exist              |
+| Invalid format    | File extension not supported for the operation |
+| Permission denied | Cannot read/write to storage directory         |
+| Unknown tool      | The requested tool name is not recognized      |

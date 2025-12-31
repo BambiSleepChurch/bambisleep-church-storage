@@ -1,0 +1,138 @@
+/* Brandynette Video Player - CSS Variables & Design Tokens
+ * Centralized design system with semantic naming
+ */
+
+@layer base {
+  :root {
+    /* ========================================================================
+       COLOR SYSTEM - Cyber Goth Palette
+       ======================================================================== */
+    --primary-color: #0c2a2aE6;
+    --primary-alt: #15aab5E6;
+    --secondary-color: #40002fE6;
+    --secondary-alt: #cc0174E6;
+    --tertiary-color: #720241e6;
+    --tertiary-alt: #02b893E6;
+    --button-color: #df0471E6;
+    --button-alt: #110000E6;
+    --nav-color: #0a2626E6;
+    --nav-alt: #17dbd8E6;
+    --transparent: #124141E6;
+    --error: #ff3333E6;
+    
+    /* Glow effects */
+    --glow-pink: #ff00ff;
+    --glow-cyan: #00ffff;
+    --glow-purple: #8a2be2;
+    
+    /* ========================================================================
+       GLASS MORPHISM - Transparency & Blur
+       ======================================================================== */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --bubble-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    
+    --blur-sm: blur(8px);
+    --blur-md: blur(12px);
+    --blur-lg: blur(20px);
+    --blur-xl: blur(24px);
+    
+    /* ========================================================================
+       TYPOGRAPHY
+       ======================================================================== */
+    --font-family-primary: 'Audiowide', sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-bold: 700;
+    
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-md: 1.125rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 2rem;
+    
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.75;
+    
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+    
+    /* ========================================================================
+       SPACING - 4px grid system
+       ======================================================================== */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.25rem;  /* 20px */
+    --space-6: 1.5rem;   /* 24px */
+    --space-8: 2rem;     /* 32px */
+    --space-10: 2.5rem;  /* 40px */
+    --space-12: 3rem;    /* 48px */
+    
+    /* ========================================================================
+       BORDERS & RADIUS
+       ======================================================================== */
+    --border: 3px ridge;
+    --border-radius: 8px;
+    
+    --border-width-thin: 1px;
+    --border-width-medium: 2px;
+    --border-width-thick: 3px;
+    
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 15px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
+    
+    /* ========================================================================
+       SHADOWS & ELEVATION
+       ======================================================================== */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-glass: var(--bubble-shadow);
+    
+    /* ========================================================================
+       TRANSITIONS
+       ======================================================================== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* ========================================================================
+       Z-INDEX SCALE
+       ======================================================================== */
+    --z-base: 0;
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-fixed: 30;
+    --z-modal-backdrop: 40;
+    --z-modal: 50;
+    --z-popover: 60;
+    --z-tooltip: 70;
+    --z-overlay: 80;
+    --z-toast: 90;
+  }
+  
+  /* ========================================================================
+     REDUCED MOTION SUPPORT
+     ======================================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --transition-fast: 0ms;
+      --transition-base: 0ms;
+      --transition-slow: 0ms;
+    }
+  }
+}

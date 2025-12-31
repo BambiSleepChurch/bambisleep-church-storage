@@ -1,0 +1,183 @@
+/* Brandynette Video Player - Feature-Specific Styles
+ * Video player features, download queue, status indicators
+ */
+
+@layer features {
+  /* ========================================================================
+     VIDEO PLAYER TITLE
+     ======================================================================== */
+  .video-title {
+    text-align: center;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-xl);
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ========================================================================
+     TIME DISPLAY
+     ======================================================================== */
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-sm);
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: var(--space-2);
+  }
+
+  /* ========================================================================
+     VOLUME CONTROL
+     ======================================================================== */
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .volume-icon {
+    font-size: var(--text-xl);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+  }
+
+  .volume-icon:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 5px var(--glow-cyan));
+  }
+
+  /* ========================================================================
+     DOWNLOAD QUEUE STATUS
+     ======================================================================== */
+  .queue-status {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .queue-status h3 {
+    font-size: var(--text-md);
+    margin-bottom: var(--space-3);
+    color: var(--nav-alt);
+  }
+
+  .queue-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+    border-bottom: var(--border-width-thin) solid var(--glass-border);
+    font-size: var(--text-sm);
+  }
+
+  .queue-item:last-child {
+    border-bottom: none;
+  }
+
+  .queue-position {
+    color: var(--glow-cyan);
+    font-weight: var(--font-bold);
+  }
+
+  /* ========================================================================
+     STATUS INDICATORS
+     ======================================================================== */
+  .status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    margin-right: var(--space-2);
+  }
+
+  .status-indicator.active {
+    background: var(--tertiary-alt);
+    box-shadow: 0 0 10px var(--tertiary-alt);
+    animation: pulse-status 2s ease-in-out infinite;
+  }
+
+  .status-indicator.queued {
+    background: var(--glow-pink);
+    box-shadow: 0 0 10px var(--glow-pink);
+  }
+
+  .status-indicator.error {
+    background: var(--error);
+    box-shadow: 0 0 10px var(--error);
+  }
+
+  @keyframes pulse-status {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.2);
+    }
+  }
+
+  /* ========================================================================
+     FILE SIZE BADGE
+     ======================================================================== */
+  .file-size {
+    display: inline-block;
+    background: var(--glass-bg);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-xs);
+    color: var(--tertiary-alt);
+  }
+
+  /* ========================================================================
+     BACK BUTTON
+     ======================================================================== */
+  .back-button {
+    position: fixed;
+    top: var(--space-4);
+    left: var(--space-4);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    backdrop-filter: var(--blur-lg);
+    border: var(--border-width-thin) solid var(--glass-border);
+    border-radius: var(--radius-full);
+    padding: var(--space-2) var(--space-4);
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    z-index: var(--z-sticky);
+    font-size: var(--text-sm);
+  }
+
+  .back-button:hover {
+    background: var(--button-color);
+    border-color: var(--glow-pink);
+    box-shadow: 0 0 20px var(--glow-pink);
+    transform: translateX(-5px);
+  }
+
+  /* ========================================================================
+     RESPONSIVE FEATURES
+     ======================================================================== */
+  @media (max-width: 768px) {
+    .back-button {
+      top: var(--space-2);
+      left: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+    }
+
+    .controls {
+      justify-content: center;
+    }
+
+    .control-button {
+      flex: 0 0 auto;
+    }
+  }
+}
