@@ -284,14 +284,11 @@ const CONTENT_DIRS = {
 
 // In-memory metadata store (persisted to disk)
 let fileRegistry = new Map();
-const REGISTRY_PATH = path.isAbsolute(
-  getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
-)
-  ? getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
-  : path.join(
-      CONFIG.baseDir,
-      getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
-    );
+const REGISTRY_PATH = path.join(
+  CONFIG.baseDir,
+  "BAMBIFICATION",
+  "registry.json"
+);
 
 /**
  * Sanitize prompt text into a valid filename
@@ -358,7 +355,7 @@ const scanExistingFiles = async () => {
   let addedCount = 0;
 
   for (const [type, dirName] of Object.entries(CONTENT_DIRS)) {
-    const dirPath = path.join(CONFIG.baseDir, "BRANDYFICATION", dirName);
+    const dirPath = path.join(CONFIG.baseDir, "BAMBIFICATION", dirName);
 
     try {
       if (!existsSync(dirPath)) {
@@ -378,7 +375,7 @@ const scanExistingFiles = async () => {
         const alreadyRegistered = Array.from(fileRegistry.values()).some(
           (entry) =>
             entry.filename === filename &&
-            entry.path === `/BRANDYFICATION/${dirName}/${filename}`
+            entry.path === `/BAMBIFICATION/${dirName}/${filename}`
         );
 
         if (alreadyRegistered) continue;
@@ -394,7 +391,7 @@ const scanExistingFiles = async () => {
           source: "existing-file",
           size: stat.size,
           createdAt: stat.birthtime.toISOString(),
-          path: `/BRANDYFICATION/${dirName}/${filename}`,
+          path: `/BAMBIFICATION/${dirName}/${filename}`,
         };
 
         fileRegistry.set(fileId, metadata);
@@ -773,7 +770,7 @@ const handleVastaiXtts = async (req, res) => {
 
     const targetDir = path.join(
       CONFIG.baseDir,
-      "BRANDYFICATION",
+      "BAMBIFICATION",
       CONTENT_DIRS.audio
     );
     await fs.mkdir(targetDir, { recursive: true });
@@ -794,7 +791,7 @@ const handleVastaiXtts = async (req, res) => {
       format: actualFormat,
       size: audioBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BAMBIFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -875,7 +872,7 @@ const handleLocalXtts = async (req, res) => {
 
     const targetDir = path.join(
       CONFIG.baseDir,
-      "BRANDYFICATION",
+      "BAMBIFICATION",
       CONTENT_DIRS.audio
     );
     await fs.mkdir(targetDir, { recursive: true });
@@ -896,7 +893,7 @@ const handleLocalXtts = async (req, res) => {
       format: actualFormat,
       size: audioBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BAMBIFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -963,7 +960,7 @@ const handleVastaiFlux1 = async (req, res) => {
 
     const targetDir = path.join(
       CONFIG.baseDir,
-      "BRANDYFICATION",
+      "BAMBIFICATION",
       CONTENT_DIRS.image
     );
     await fs.mkdir(targetDir, { recursive: true });
@@ -983,7 +980,7 @@ const handleVastaiFlux1 = async (req, res) => {
       steps,
       size: imageBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${CONTENT_DIRS.image}/${filename}`,
+      path: `/BAMBIFICATION/${CONTENT_DIRS.image}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1037,7 +1034,7 @@ const handleXttsUpload = async (req, res) => {
 
     const targetDir = path.join(
       CONFIG.baseDir,
-      "BRANDYFICATION",
+      "BAMBIFICATION",
       CONTENT_DIRS.audio
     );
     await fs.mkdir(targetDir, { recursive: true });
@@ -1055,7 +1052,7 @@ const handleXttsUpload = async (req, res) => {
       voice,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BAMBIFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1108,7 +1105,7 @@ const handleFlux1Upload = async (req, res) => {
 
     const targetDir = path.join(
       CONFIG.baseDir,
-      "BRANDYFICATION",
+      "BAMBIFICATION",
       CONTENT_DIRS.image
     );
     await fs.mkdir(targetDir, { recursive: true });
@@ -1127,7 +1124,7 @@ const handleFlux1Upload = async (req, res) => {
       steps,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${CONTENT_DIRS.image}/${filename}`,
+      path: `/BAMBIFICATION/${CONTENT_DIRS.image}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1188,7 +1185,7 @@ const handleGenericUpload = async (req, res) => {
       contentDir = CONTENT_DIRS.image;
     }
 
-    const targetDir = path.join(CONFIG.baseDir, "BRANDYFICATION", contentDir);
+    const targetDir = path.join(CONFIG.baseDir, "BAMBIFICATION", contentDir);
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -1203,7 +1200,7 @@ const handleGenericUpload = async (req, res) => {
       prompt,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/BRANDYFICATION/${contentDir}/${filename}`,
+      path: `/BAMBIFICATION/${contentDir}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1569,7 +1566,7 @@ const handleRequest = async (req, res) => {
     }
 
     // Serve static files from content directories
-    if (pathname.startsWith("/BRANDYFICATION/")) {
+    if (pathname.startsWith("/BAMBIFICATION/")) {
       const filePath = path.join(CONFIG.baseDir, decodeURIComponent(pathname));
       return serveFile(res, filePath);
     }
@@ -1578,7 +1575,7 @@ const handleRequest = async (req, res) => {
     if (pathname === "/" || pathname === "/api") {
       const baseUrl = `http://${req.headers.host}`;
       return sendJson(res, {
-        name: "BRANDYFICATION File Host",
+        name: "BAMBIFICATION File Host",
         version: "1.0.0",
         baseUrl: baseUrl,
         tts: {
@@ -1663,7 +1660,7 @@ const startServer = async () => {
       : null;
 
     console.log(`
-🚀 BRANDYFICATION File Host
+🚀 BAMBIFICATION File Host
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📡 ${localhostUrl}
 🌐 ${localNetworkUrl ?? "Network: Not available"}
