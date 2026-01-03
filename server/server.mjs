@@ -284,7 +284,14 @@ const CONTENT_DIRS = {
 
 // In-memory metadata store (persisted to disk)
 let fileRegistry = new Map();
-const REGISTRY_PATH = path.join(CONFIG.baseDir, "server", "registry.json");
+const REGISTRY_PATH = path.isAbsolute(
+  getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
+)
+  ? getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
+  : path.join(
+      CONFIG.baseDir,
+      getConfig("REGISTRY_PATH", "registryPath", "BRANDYFICATION/registry.json")
+    );
 
 /**
  * Sanitize prompt text into a valid filename
@@ -341,6 +348,66 @@ const saveRegistry = async () => {
     );
   } catch (error) {
     console.error("❌ Failed to save registry:", error.message);
+  }
+};
+
+/**
+ * Scan existing files in content directories and add to registry
+ */
+const scanExistingFiles = async () => {
+  let addedCount = 0;
+
+  for (const [type, dirName] of Object.entries(CONTENT_DIRS)) {
+    const dirPath = path.join(CONFIG.baseDir, "BRANDYFICATION", dirName);
+
+    try {
+      if (!existsSync(dirPath)) {
+        console.warn(`⚠️ Directory not found: ${dirPath}`);
+        continue;
+      }
+
+      const files = await fs.readdir(dirPath);
+
+      for (const filename of files) {
+        const filePath = path.join(dirPath, filename);
+        const stat = await fs.stat(filePath);
+
+        if (!stat.isFile()) continue;
+
+        // Check if file already in registry
+        const alreadyRegistered = Array.from(fileRegistry.values()).some(
+          (entry) =>
+            entry.filename === filename &&
+            entry.path === `/BRANDYFICATION/${dirName}/${filename}`
+        );
+
+        if (alreadyRegistered) continue;
+
+        // Generate new registry entry
+        const fileId = generateFileId();
+        const ext = path.extname(filename).toLowerCase();
+
+        const metadata = {
+          id: fileId,
+          filename,
+          type: type.slice(0, -1), // Remove trailing 's': audios -> audio
+          source: "existing-file",
+          size: stat.size,
+          createdAt: stat.birthtime.toISOString(),
+          path: `/BRANDYFICATION/${dirName}/${filename}`,
+        };
+
+        fileRegistry.set(fileId, metadata);
+        addedCount++;
+      }
+    } catch (error) {
+      console.warn(`⚠️ Could not scan ${dirName}:`, error.message);
+    }
+  }
+
+  if (addedCount > 0) {
+    await saveRegistry();
+    console.log(`📦 Added ${addedCount} existing files to registry`);
   }
 };
 
@@ -704,7 +771,11 @@ const handleVastaiXtts = async (req, res) => {
     const ext = `.${actualFormat}`;
     const filename = `xtts-${safeName}-${voiceName}-${timestamp}${ext}`;
 
-    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.audio);
+    const targetDir = path.join(
+      CONFIG.baseDir,
+      "BRANDYFICATION",
+      CONTENT_DIRS.audio
+    );
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -723,7 +794,7 @@ const handleVastaiXtts = async (req, res) => {
       format: actualFormat,
       size: audioBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -802,7 +873,11 @@ const handleLocalXtts = async (req, res) => {
     const ext = `.${actualFormat}`;
     const filename = `local-xtts-${safeName}-${voiceName}-${timestamp}${ext}`;
 
-    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.audio);
+    const targetDir = path.join(
+      CONFIG.baseDir,
+      "BRANDYFICATION",
+      CONTENT_DIRS.audio
+    );
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -821,7 +896,7 @@ const handleLocalXtts = async (req, res) => {
       format: actualFormat,
       size: audioBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -886,7 +961,11 @@ const handleVastaiFlux1 = async (req, res) => {
     const timestamp = getTimestamp();
     const filename = `flux1-${safeName}-s${actualSeed}-${timestamp}.png`;
 
-    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.image);
+    const targetDir = path.join(
+      CONFIG.baseDir,
+      "BRANDYFICATION",
+      CONTENT_DIRS.image
+    );
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -904,7 +983,7 @@ const handleVastaiFlux1 = async (req, res) => {
       steps,
       size: imageBuffer.length,
       createdAt: new Date().toISOString(),
-      path: `/${CONTENT_DIRS.image}/${filename}`,
+      path: `/BRANDYFICATION/${CONTENT_DIRS.image}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -956,7 +1035,11 @@ const handleXttsUpload = async (req, res) => {
     const ext = path.extname(file.filename || ".wav") || ".wav";
     const filename = `xtts-${safeName}-${voice}-${timestamp}${ext}`;
 
-    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.audio);
+    const targetDir = path.join(
+      CONFIG.baseDir,
+      "BRANDYFICATION",
+      CONTENT_DIRS.audio
+    );
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -972,7 +1055,7 @@ const handleXttsUpload = async (req, res) => {
       voice,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/${CONTENT_DIRS.audio}/${filename}`,
+      path: `/BRANDYFICATION/${CONTENT_DIRS.audio}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1023,7 +1106,11 @@ const handleFlux1Upload = async (req, res) => {
     const ext = path.extname(file.filename || ".png") || ".png";
     const filename = `flux1-${safeName}-s${seed}-${timestamp}${ext}`;
 
-    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.image);
+    const targetDir = path.join(
+      CONFIG.baseDir,
+      "BRANDYFICATION",
+      CONTENT_DIRS.image
+    );
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -1040,7 +1127,7 @@ const handleFlux1Upload = async (req, res) => {
       steps,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/${CONTENT_DIRS.image}/${filename}`,
+      path: `/BRANDYFICATION/${CONTENT_DIRS.image}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1101,7 +1188,7 @@ const handleGenericUpload = async (req, res) => {
       contentDir = CONTENT_DIRS.image;
     }
 
-    const targetDir = path.join(CONFIG.baseDir, contentDir);
+    const targetDir = path.join(CONFIG.baseDir, "BRANDYFICATION", contentDir);
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -1116,7 +1203,7 @@ const handleGenericUpload = async (req, res) => {
       prompt,
       size: file.data.length,
       createdAt: new Date().toISOString(),
-      path: `/${contentDir}/${filename}`,
+      path: `/BRANDYFICATION/${contentDir}/${filename}`,
     };
 
     fileRegistry.set(fileId, metadata);
@@ -1280,7 +1367,7 @@ const handleRequest = async (req, res) => {
   if (method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     });
     res.end();
@@ -1326,10 +1413,21 @@ const handleRequest = async (req, res) => {
 
     // Health check
     if (pathname === "/health" || pathname === "/api/health") {
+      const baseUrl = `http://${req.headers.host}`;
       return sendJson(res, {
         status: "ok",
         files: fileRegistry.size,
         uptime: process.uptime(),
+        urls: {
+          base: baseUrl,
+          api: `${baseUrl}/api`,
+          health: `${baseUrl}/health`,
+          config: `${baseUrl}/config`,
+          files: `${baseUrl}/api/files`,
+          localTts: `${baseUrl}/local/xtts`,
+          vastaiTts: `${baseUrl}/vastai/xtts`,
+          vastaiFlux: `${baseUrl}/vastai/flux1`,
+        },
         system: {
           hostname: CONFIG.system.hostname,
           platform: CONFIG.system.platform,
@@ -1350,13 +1448,25 @@ const handleRequest = async (req, res) => {
 
     // Get current configuration (non-sensitive)
     if (pathname === "/config" || pathname === "/api/config") {
+      const baseUrl = `http://${req.headers.host}`;
+      const localhostUrl = `http://localhost:${CONFIG.port}`;
+      const networkUrl = CONFIG.system.externalIp
+        ? `http://${CONFIG.system.externalIp}:${CONFIG.port}`
+        : null;
       return sendJson(res, {
         server: {
           port: CONFIG.port,
           host: CONFIG.host,
-          publicUrl:
-            CONFIG.publicUrl ??
-            `http://${CONFIG.system.externalIp ?? "localhost"}:${CONFIG.port}`,
+          urls: {
+            current: baseUrl,
+            localhost: localhostUrl,
+            network: networkUrl,
+            public:
+              CONFIG.publicUrl ??
+              `http://${CONFIG.system.externalIp ?? "localhost"}:${
+                CONFIG.port
+              }`,
+          },
         },
         limits: {
           maxUploadSize: CONFIG.maxUploadSize,
@@ -1459,20 +1569,18 @@ const handleRequest = async (req, res) => {
     }
 
     // Serve static files from content directories
-    if (
-      pathname.startsWith("/AUDIOS/") ||
-      pathname.startsWith("/IMAGES/") ||
-      pathname.startsWith("/VIDEOS/")
-    ) {
+    if (pathname.startsWith("/BRANDYFICATION/")) {
       const filePath = path.join(CONFIG.baseDir, decodeURIComponent(pathname));
       return serveFile(res, filePath);
     }
 
     // API documentation / index
     if (pathname === "/" || pathname === "/api") {
+      const baseUrl = `http://${req.headers.host}`;
       return sendJson(res, {
         name: "BRANDYFICATION File Host",
         version: "1.0.0",
+        baseUrl: baseUrl,
         tts: {
           local: isLocalTtsAvailable()
             ? "✓ Local Coqui TTS available"
@@ -1510,6 +1618,13 @@ const handleRequest = async (req, res) => {
           "GET /meta/:id": "Get file metadata",
           "GET /health": "Health check",
         },
+        examples: {
+          health: `${baseUrl}/health`,
+          config: `${baseUrl}/config`,
+          listFiles: `${baseUrl}/api/files`,
+          generateTts: `curl -X POST ${baseUrl}/local/xtts -H "Content-Type: application/json" -d '{"text":"Hello world","language":"en"}'`,
+          checkStatus: `${baseUrl}/vastai/status`,
+        },
         sources: [
           "local-xtts-coqui",
           "vastai-xtts",
@@ -1523,26 +1638,6 @@ const handleRequest = async (req, res) => {
     }
   }
 
-  // Delete file
-  if (method === "DELETE") {
-    const deleteMatch = pathname.match(/^\/files\/([a-f0-9]+)$/);
-    if (deleteMatch) {
-      const fileId = deleteMatch[1];
-      const metadata = fileRegistry.get(fileId);
-      if (metadata) {
-        try {
-          await fs.unlink(path.join(CONFIG.baseDir, metadata.path));
-          fileRegistry.delete(fileId);
-          await saveRegistry();
-          return sendJson(res, { success: true, deleted: fileId });
-        } catch (error) {
-          return sendError(res, error.message, 500);
-        }
-      }
-      return sendError(res, "File not found", 404);
-    }
-  }
-
   sendError(res, "Not found", 404);
 };
 
@@ -1551,6 +1646,7 @@ const handleRequest = async (req, res) => {
  */
 const startServer = async () => {
   await loadRegistry();
+  await scanExistingFiles();
 
   // Find available port
   CONFIG.port = await findAvailablePort(CONFIG.preferredPort);
@@ -1561,74 +1657,28 @@ const startServer = async () => {
     const publicUrl =
       CONFIG.publicUrl ??
       `http://${CONFIG.system.externalIp ?? "localhost"}:${CONFIG.port}`;
+    const localhostUrl = `http://localhost:${CONFIG.port}`;
+    const localNetworkUrl = CONFIG.system.externalIp
+      ? `http://${CONFIG.system.externalIp}:${CONFIG.port}`
+      : null;
 
     console.log(`
-🚀 BRANDYFICATION File Host Server
+🚀 BRANDYFICATION File Host
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📡 Local:    http://${CONFIG.host}:${CONFIG.port}
-🌐 Public:   ${publicUrl}
-📁 Base Dir: ${CONFIG.baseDir}
-📊 Registry: ${fileRegistry.size} files
+📡 ${localhostUrl}
+🌐 ${localNetworkUrl ?? "Network: Not available"}
+📊 ${fileRegistry.size} files | TTS: ${
+      isLocalTtsAvailable() ? "✓ Local" : "✗"
+    } ${CONFIG.vastai.xttsEndpoint ? "✓ VastAI" : "✗"}
 
-System Info:
-  Host:     ${CONFIG.system.hostname}
-  Platform: ${CONFIG.system.platform}
-  CPUs:     ${CONFIG.system.cpuCount}
-  Memory:   ${CONFIG.system.totalMemMB} MB
-  Ext IP:   ${CONFIG.system.externalIp ?? "unknown"}
-  PID:      ${process.pid}
-
-Port Assignment:
-  Preferred: ${CONFIG.preferredPort}
-  Assigned:  ${CONFIG.port} ${
-      CONFIG.port === CONFIG.preferredPort ? "✓" : "(fallback)"
-    }
-
-Configuration:
-  Source:   ${
-    existsSync(ENV_PATH)
-      ? ".env"
-      : existsSync(CONFIG_PATH)
-      ? "config.json"
-      : "defaults"
-  }
-  Timeout:  ${CONFIG.vastai.timeout}ms
-  Max Upload: ${Math.round(CONFIG.maxUploadSize / 1024 / 1024)}MB
-
-TTS Integration:
-  Local:  ${isLocalTtsAvailable() ? "✓ Coqui TTS available" : "✗ Not available"}
-  VastAI: ${CONFIG.vastai.xttsEndpoint ?? "❌ Set VASTAI_XTTS_URL"}
-
-Local XTTS Config:
-  Model Dir:   ${process.env.XTTS_MODEL_DIR ?? "Not set (will download)"}
-  Checkpoint:  ${process.env.XTTS_CHECKPOINT_PATH ?? "Auto"}
-  Config:      ${process.env.XTTS_CONFIG_PATH ?? "Auto"}
-  Temperature: ${process.env.XTTS_TEMPERATURE ?? "0.85"}
-  Top P:       ${process.env.XTTS_TOP_P ?? "0.85"}
-
-VastAI Endpoints:
-  XTTS:  ${CONFIG.vastai.xttsEndpoint ?? "❌ Set VASTAI_XTTS_URL"}
-  Flux1: ${CONFIG.vastai.flux1Endpoint ?? "❌ Set VASTAI_FLUX1_URL"}
-
-XTTS Defaults:
-  Voice:  ${CONFIG.defaults.xtts.voice}
-  Lang:   ${CONFIG.defaults.xtts.language}
-  Speed:  ${CONFIG.defaults.xtts.speed}
-  Format: ${CONFIG.defaults.xtts.outputFormat}
-
-Flux1 Defaults:
-  Size:   ${CONFIG.defaults.flux1.width}x${CONFIG.defaults.flux1.height}
-  Steps:  ${CONFIG.defaults.flux1.steps}
-
-API Endpoints:
-  POST /local/xtts      Generate TTS using local Coqui TTS
-  POST /vastai/xtts     Generate TTS (MP3) via VastAI
-  POST /vastai/flux1    Generate images via VastAI
-  GET  /vastai/status   Check VastAI status
-  GET  /config          View current configuration
-  GET  /health          Health check + system info
-  POST /upload/*        Upload files
-  GET  /api/files       List files
+🎵 TTS:  POST ${localhostUrl}/local/xtts
+         POST ${localhostUrl}/vastai/xtts
+🖼️  IMG:  POST ${localhostUrl}/vastai/flux1
+� API:  GET  ${localhostUrl}/api/files
+         GET  ${localhostUrl}/files/:id/:filename
+         GET  ${localhostUrl}/download/:id
+📊 INFO: GET  ${localhostUrl}/health
+         GET  ${localhostUrl}/config
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         `);
   });
