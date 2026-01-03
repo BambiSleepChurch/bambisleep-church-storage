@@ -440,6 +440,101 @@ const resolveVoicePath = (voice) => {
 };
 
 /**
+ * Check if local TTS is available
+ */
+const isLocalTtsAvailable = () => {
+  const pythonScript = path.join(import.meta.dirname, "local-tts.py");
+  return existsSync(pythonScript);
+};
+
+/**
+ * Generate TTS audio using local Coqui TTS (via Python script)
+ */
+const localGenerateXtts = async (
+  text,
+  voice = CONFIG.defaults.xtts.voice,
+  language = CONFIG.defaults.xtts.language,
+  speed = CONFIG.defaults.xtts.speed,
+  outputFormat = CONFIG.defaults.xtts.outputFormat
+) => {
+  const { spawn } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const execFile = promisify((await import("node:child_process")).execFile);
+
+  const resolvedVoice = resolveVoicePath(voice);
+  const pythonScript = path.join(import.meta.dirname, "local-tts.py");
+
+  // Create temp output file
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "xtts-"));
+  const tempOutput = path.join(tempDir, `output.${outputFormat}`);
+
+  try {
+    // Build command arguments
+    const args = [
+      pythonScript,
+      "--text",
+      text,
+      "--speaker_wav",
+      resolvedVoice,
+      "--language",
+      language,
+      "--speed",
+      speed.toString(),
+      "--output",
+      tempOutput,
+      "--json",
+    ];
+
+    // Add environment variables if configured
+    const env = { ...process.env };
+    if (process.env.XTTS_MODEL_DIR) {
+      env.XTTS_MODEL_DIR = process.env.XTTS_MODEL_DIR;
+    }
+    if (process.env.XTTS_CHECKPOINT_PATH) {
+      env.XTTS_CHECKPOINT_PATH = process.env.XTTS_CHECKPOINT_PATH;
+    }
+    if (process.env.XTTS_CONFIG_PATH) {
+      env.XTTS_CONFIG_PATH = process.env.XTTS_CONFIG_PATH;
+    }
+
+    console.log(`🎵 Local TTS: Running Python script...`);
+
+    // Execute Python script
+    const { stdout, stderr } = await execFile("python3", args, {
+      env,
+      timeout: CONFIG.vastai.timeout,
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
+
+    // Parse JSON result
+    const result = JSON.parse(stdout.trim());
+
+    if (!result.success) {
+      throw new Error(result.error || "TTS generation failed");
+    }
+
+    // Read generated audio file
+    const audioBuffer = await fs.readFile(tempOutput);
+
+    // Clean up temp directory
+    await fs.rm(tempDir, { recursive: true, force: true });
+
+    return {
+      buffer: audioBuffer,
+      format: outputFormat,
+    };
+  } catch (error) {
+    // Clean up temp directory on error
+    try {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+    throw error;
+  }
+};
+
+/**
  * VastAI: Generate TTS audio via XTTS v2 Coqui endpoint
  * Always uses Bambi-DASIT.mp3 as voice reference and outputs MP3
  */
@@ -655,6 +750,102 @@ const handleVastaiXtts = async (req, res) => {
     );
   } catch (error) {
     console.error("❌ VastAI XTTS Error:", error.message);
+    sendError(res, error.message, 500);
+  }
+};
+
+/**
+ * Handle local XTTS generation request using Coqui TTS
+ */
+const handleLocalXtts = async (req, res) => {
+  try {
+    if (!isLocalTtsAvailable()) {
+      return sendError(
+        res,
+        "Local TTS not available. Check that local-tts.py exists and Python dependencies are installed.",
+        503
+      );
+    }
+
+    const body = await parseJsonBody(req);
+    const {
+      text,
+      prompt,
+      voice = CONFIG.defaults.xtts.voice,
+      language = CONFIG.defaults.xtts.language,
+      speed = CONFIG.defaults.xtts.speed,
+      format = CONFIG.defaults.xtts.outputFormat,
+    } = body;
+
+    const inputText = text ?? prompt;
+    if (!inputText) {
+      return sendError(res, "text or prompt is required");
+    }
+
+    const outputFormat = format === "wav" ? "wav" : "mp3";
+    const voiceName = path.basename(voice, path.extname(voice));
+
+    console.log(
+      `🎵 Local XTTS: "${inputText.slice(
+        0,
+        50
+      )}..." voice=${voiceName} format=${outputFormat}`
+    );
+
+    const { buffer: audioBuffer, format: actualFormat } =
+      await localGenerateXtts(inputText, voice, language, speed, outputFormat);
+
+    // Save with prompt-based filename
+    const fileId = generateFileId();
+    const safeName = sanitizeFilename(inputText);
+    const timestamp = getTimestamp();
+    const ext = `.${actualFormat}`;
+    const filename = `local-xtts-${safeName}-${voiceName}-${timestamp}${ext}`;
+
+    const targetDir = path.join(CONFIG.baseDir, CONTENT_DIRS.audio);
+    await fs.mkdir(targetDir, { recursive: true });
+
+    const filePath = path.join(targetDir, filename);
+    await fs.writeFile(filePath, audioBuffer);
+
+    const metadata = {
+      id: fileId,
+      filename,
+      type: "audio",
+      source: "local-xtts-coqui",
+      prompt: inputText,
+      voice: voiceName,
+      voicePath: voice,
+      language,
+      speed,
+      format: actualFormat,
+      size: audioBuffer.length,
+      createdAt: new Date().toISOString(),
+      path: `/${CONTENT_DIRS.audio}/${filename}`,
+    };
+
+    fileRegistry.set(fileId, metadata);
+    await saveRegistry();
+
+    const baseUrl = `http://${req.headers.host}`;
+
+    sendJson(res, {
+      success: true,
+      file: {
+        id: fileId,
+        filename,
+        url: `${baseUrl}/files/${fileId}/${filename}`,
+        directUrl: `${baseUrl}${metadata.path}`,
+        downloadUrl: `${baseUrl}/download/${fileId}`,
+        metadata,
+      },
+    });
+
+    console.log(
+      `✅ Local XTTS: ${filename} (${(audioBuffer.length / 1024).toFixed(1)}KB)`
+    );
+  } catch (error) {
+    console.error("❌ Local XTTS Error:", error.message);
     sendError(res, error.message, 500);
   }
 };
@@ -1108,6 +1299,11 @@ const handleRequest = async (req, res) => {
       return handleVastaiFlux1(req, res);
     }
 
+    // Local TTS generation endpoint
+    if (pathname === "/local/xtts" || pathname === "/generate/local/xtts") {
+      return handleLocalXtts(req, res);
+    }
+
     if (pathname === "/upload/xtts" || pathname === "/api/xtts") {
       return handleXttsUpload(req, res);
     }
@@ -1140,6 +1336,10 @@ const handleRequest = async (req, res) => {
           cpus: CONFIG.system.cpuCount,
           memoryMB: CONFIG.system.totalMemMB,
           externalIp: CONFIG.system.externalIp,
+        },
+        tts: {
+          local: isLocalTtsAvailable() ? "available" : "not available",
+          vastai: CONFIG.vastai.xttsEndpoint ? "configured" : "not configured",
         },
         vastai: {
           xtts: CONFIG.vastai.xttsEndpoint ? "configured" : "not configured",
@@ -1273,6 +1473,14 @@ const handleRequest = async (req, res) => {
       return sendJson(res, {
         name: "BRANDYFICATION File Host",
         version: "1.0.0",
+        tts: {
+          local: isLocalTtsAvailable()
+            ? "✓ Local Coqui TTS available"
+            : "✗ Not available (install dependencies)",
+          vastai:
+            CONFIG.vastai.xttsEndpoint ??
+            "not configured (set VASTAI_XTTS_URL)",
+        },
         vastai: {
           xtts:
             CONFIG.vastai.xttsEndpoint ??
@@ -1282,6 +1490,8 @@ const handleRequest = async (req, res) => {
             "not configured (set VASTAI_FLUX1_URL)",
         },
         endpoints: {
+          "POST /local/xtts":
+            "Generate TTS using local Coqui TTS (JSON: {text, voice?, language?, speed?, format?})",
           "POST /vastai/xtts":
             "Generate TTS via VastAI XTTS (JSON: {text, voice?, language?, speed?})",
           "POST /vastai/flux1":
@@ -1301,6 +1511,7 @@ const handleRequest = async (req, res) => {
           "GET /health": "Health check",
         },
         sources: [
+          "local-xtts-coqui",
           "vastai-xtts",
           "vastai-flux1",
           "xtts-v2-coqui",
@@ -1384,6 +1595,17 @@ Configuration:
   Timeout:  ${CONFIG.vastai.timeout}ms
   Max Upload: ${Math.round(CONFIG.maxUploadSize / 1024 / 1024)}MB
 
+TTS Integration:
+  Local:  ${isLocalTtsAvailable() ? "✓ Coqui TTS available" : "✗ Not available"}
+  VastAI: ${CONFIG.vastai.xttsEndpoint ?? "❌ Set VASTAI_XTTS_URL"}
+
+Local XTTS Config:
+  Model Dir:   ${process.env.XTTS_MODEL_DIR ?? "Not set (will download)"}
+  Checkpoint:  ${process.env.XTTS_CHECKPOINT_PATH ?? "Auto"}
+  Config:      ${process.env.XTTS_CONFIG_PATH ?? "Auto"}
+  Temperature: ${process.env.XTTS_TEMPERATURE ?? "0.85"}
+  Top P:       ${process.env.XTTS_TOP_P ?? "0.85"}
+
 VastAI Endpoints:
   XTTS:  ${CONFIG.vastai.xttsEndpoint ?? "❌ Set VASTAI_XTTS_URL"}
   Flux1: ${CONFIG.vastai.flux1Endpoint ?? "❌ Set VASTAI_FLUX1_URL"}
@@ -1399,6 +1621,7 @@ Flux1 Defaults:
   Steps:  ${CONFIG.defaults.flux1.steps}
 
 API Endpoints:
+  POST /local/xtts      Generate TTS using local Coqui TTS
   POST /vastai/xtts     Generate TTS (MP3) via VastAI
   POST /vastai/flux1    Generate images via VastAI
   GET  /vastai/status   Check VastAI status
