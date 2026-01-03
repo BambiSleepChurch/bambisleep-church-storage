@@ -1,0 +1,31 @@
+{
+  "name": "brandyfication-filehost",
+  "version": "1.0.0",
+  "description": "ES2024 File Host for XTTS v2 Coqui & Flux1 generated content with prompt-based naming",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test tests/*.mjs"
+  },
+  "keywords": [
+    "file-host",
+    "xtts",
+    "coqui",
+    "flux1",
+    "tts",
+    "image-generation",
+    "vastai"
+  ],
+  "author": "BambiSleepChurch",
+  "license": "MIT",
+  "exports": {
+    ".": "./client.mjs",
+    "./client": "./client.mjs",
+    "./server": "./server.mjs",
+    "./vastai": "./vastai-integration.mjs"
+  }
+}
