@@ -387,7 +387,7 @@ const scanExistingFiles = async () => {
         const metadata = {
           id: fileId,
           filename,
-          type: type.slice(0, -1), // Remove trailing 's': audios -> audio
+          type: type,
           source: "existing-file",
           size: stat.size,
           createdAt: stat.birthtime.toISOString(),
@@ -728,147 +728,61 @@ const vastaiGenerateFlux1 = async (
 };
 
 /**
- * Handle VastAI XTTS generation request
- * Always uses Bambi-DASIT.mp3 voice and outputs MP3
+ * Handle simplified Coqui generation (GET with query params)
  */
-const handleVastaiXtts = async (req, res) => {
+const handleGenerateCoqui = async (req, res) => {
   try {
-    const body = await parseJsonBody(req);
-    const {
-      text,
-      prompt,
-      voice = CONFIG.defaults.xtts.voice,
-      language = CONFIG.defaults.xtts.language,
-      speed = CONFIG.defaults.xtts.speed,
-      format = CONFIG.defaults.xtts.outputFormat,
-    } = body;
-
-    const inputText = text ?? prompt;
-    if (!inputText) {
-      return sendError(res, "text or prompt is required");
-    }
-
-    const outputFormat = format === "wav" ? "wav" : "mp3"; // Default to MP3
-    const voiceName = path.basename(voice, path.extname(voice));
-
-    console.log(
-      `🎵 VastAI XTTS: "${inputText.slice(
-        0,
-        50
-      )}..." voice=${voiceName} format=${outputFormat}`
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const prompt = url.searchParams.get("prompt");
+    const voice = url.searchParams.get("voice") || CONFIG.defaults.xtts.voice;
+    const language =
+      url.searchParams.get("language") || CONFIG.defaults.xtts.language;
+    const speed = parseFloat(
+      url.searchParams.get("speed") || CONFIG.defaults.xtts.speed
     );
+    const format =
+      url.searchParams.get("format") || CONFIG.defaults.xtts.outputFormat;
 
-    const { buffer: audioBuffer, format: actualFormat } =
-      await vastaiGenerateXtts(inputText, voice, language, speed, outputFormat);
-
-    // Save with prompt-based filename (MP3 by default)
-    const fileId = generateFileId();
-    const safeName = sanitizeFilename(inputText);
-    const timestamp = getTimestamp();
-    const ext = `.${actualFormat}`;
-    const filename = `xtts-${safeName}-${voiceName}-${timestamp}${ext}`;
-
-    const targetDir = path.join(
-      CONFIG.baseDir,
-      "BAMBIFICATION",
-      CONTENT_DIRS.audio
-    );
-    await fs.mkdir(targetDir, { recursive: true });
-
-    const filePath = path.join(targetDir, filename);
-    await fs.writeFile(filePath, audioBuffer);
-
-    const metadata = {
-      id: fileId,
-      filename,
-      type: "audio",
-      source: "vastai-xtts",
-      prompt: inputText,
-      voice: voiceName,
-      voicePath: voice,
-      language,
-      speed,
-      format: actualFormat,
-      size: audioBuffer.length,
-      createdAt: new Date().toISOString(),
-      path: `/BAMBIFICATION/${CONTENT_DIRS.audio}/${filename}`,
-    };
-
-    fileRegistry.set(fileId, metadata);
-    await saveRegistry();
-
-    const baseUrl = `http://${req.headers.host}`;
-
-    sendJson(res, {
-      success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        metadata,
-      },
-    });
-
-    console.log(
-      `✅ VastAI XTTS: ${filename} (${(audioBuffer.length / 1024).toFixed(
-        1
-      )}KB)`
-    );
-  } catch (error) {
-    console.error("❌ VastAI XTTS Error:", error.message);
-    sendError(res, error.message, 500);
-  }
-};
-
-/**
- * Handle local XTTS generation request using Coqui TTS
- */
-const handleLocalXtts = async (req, res) => {
-  try {
-    if (!isLocalTtsAvailable()) {
-      return sendError(
-        res,
-        "Local TTS not available. Check that local-tts.py exists and Python dependencies are installed.",
-        503
-      );
-    }
-
-    const body = await parseJsonBody(req);
-    const {
-      text,
-      prompt,
-      voice = CONFIG.defaults.xtts.voice,
-      language = CONFIG.defaults.xtts.language,
-      speed = CONFIG.defaults.xtts.speed,
-      format = CONFIG.defaults.xtts.outputFormat,
-    } = body;
-
-    const inputText = text ?? prompt;
-    if (!inputText) {
-      return sendError(res, "text or prompt is required");
+    if (!prompt) {
+      return sendError(res, "prompt parameter is required");
     }
 
     const outputFormat = format === "wav" ? "wav" : "mp3";
     const voiceName = path.basename(voice, path.extname(voice));
 
-    console.log(
-      `🎵 Local XTTS: "${inputText.slice(
-        0,
-        50
-      )}..." voice=${voiceName} format=${outputFormat}`
-    );
+    console.log(`🎵 Coqui TTS: "${prompt.slice(0, 50)}..." voice=${voiceName}`);
 
-    const { buffer: audioBuffer, format: actualFormat } =
-      await localGenerateXtts(inputText, voice, language, speed, outputFormat);
+    // Try local first, fallback to VastAI
+    let audioBuffer, actualFormat;
+    if (isLocalTtsAvailable()) {
+      const result = await localGenerateXtts(
+        prompt,
+        voice,
+        language,
+        speed,
+        outputFormat
+      );
+      audioBuffer = result.buffer;
+      actualFormat = result.format;
+    } else if (CONFIG.vastai.xttsEndpoint) {
+      const result = await vastaiGenerateXtts(
+        prompt,
+        voice,
+        language,
+        speed,
+        outputFormat
+      );
+      audioBuffer = result.buffer;
+      actualFormat = result.format;
+    } else {
+      return sendError(res, "No TTS service available (local or VastAI)", 503);
+    }
 
-    // Save with prompt-based filename
     const fileId = generateFileId();
-    const safeName = sanitizeFilename(inputText);
+    const safeName = sanitizeFilename(prompt);
     const timestamp = getTimestamp();
     const ext = `.${actualFormat}`;
-    const filename = `local-xtts-${safeName}-${voiceName}-${timestamp}${ext}`;
+    const filename = `coqui-${safeName}-${voiceName}-${timestamp}${ext}`;
 
     const targetDir = path.join(
       CONFIG.baseDir,
@@ -884,10 +798,9 @@ const handleLocalXtts = async (req, res) => {
       id: fileId,
       filename,
       type: "audio",
-      source: "local-xtts-coqui",
-      prompt: inputText,
+      source: "coqui-tts",
+      prompt,
       voice: voiceName,
-      voicePath: voice,
       language,
       speed,
       format: actualFormat,
@@ -903,46 +816,43 @@ const handleLocalXtts = async (req, res) => {
 
     sendJson(res, {
       success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        metadata,
-      },
+      url: `${baseUrl}${metadata.path}`,
     });
 
     console.log(
-      `✅ Local XTTS: ${filename} (${(audioBuffer.length / 1024).toFixed(1)}KB)`
+      `✅ Coqui: ${filename} (${(audioBuffer.length / 1024).toFixed(1)}KB)`
     );
   } catch (error) {
-    console.error("❌ Local XTTS Error:", error.message);
+    console.error("❌ Coqui Error:", error.message);
     sendError(res, error.message, 500);
   }
 };
 
 /**
- * Handle VastAI Flux1 generation request
+ * Handle simplified Flux1 generation (GET with query params)
  */
-const handleVastaiFlux1 = async (req, res) => {
+const handleGenerateFlux1 = async (req, res) => {
   try {
-    const body = await parseJsonBody(req);
-    const {
-      prompt,
-      seed,
-      width = CONFIG.defaults.flux1.width,
-      height = CONFIG.defaults.flux1.height,
-      steps = CONFIG.defaults.flux1.steps,
-    } = body;
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const prompt = url.searchParams.get("prompt");
+    const seed = url.searchParams.get("seed")
+      ? parseInt(url.searchParams.get("seed"))
+      : null;
+    const width = parseInt(
+      url.searchParams.get("width") || CONFIG.defaults.flux1.width
+    );
+    const height = parseInt(
+      url.searchParams.get("height") || CONFIG.defaults.flux1.height
+    );
+    const steps = parseInt(
+      url.searchParams.get("steps") || CONFIG.defaults.flux1.steps
+    );
 
     if (!prompt) {
-      return sendError(res, "prompt is required");
+      return sendError(res, "prompt parameter is required");
     }
 
-    console.log(
-      `🖼️ VastAI Flux1: "${prompt.slice(0, 50)}..." ${width}x${height}`
-    );
+    console.log(`🖼️ Flux1: "${prompt.slice(0, 50)}..." ${width}x${height}`);
 
     const { buffer: imageBuffer, seed: actualSeed } = await vastaiGenerateFlux1(
       prompt,
@@ -952,7 +862,6 @@ const handleVastaiFlux1 = async (req, res) => {
       steps
     );
 
-    // Save with prompt-based filename
     const fileId = generateFileId();
     const safeName = sanitizeFilename(prompt);
     const timestamp = getTimestamp();
@@ -972,7 +881,7 @@ const handleVastaiFlux1 = async (req, res) => {
       id: fileId,
       filename,
       type: "image",
-      source: "vastai-flux1",
+      source: "flux1-schnell",
       prompt,
       seed: actualSeed,
       width,
@@ -990,241 +899,14 @@ const handleVastaiFlux1 = async (req, res) => {
 
     sendJson(res, {
       success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        metadata,
-      },
+      url: `${baseUrl}${metadata.path}`,
     });
 
     console.log(
-      `✅ VastAI Flux1: ${filename} (${(imageBuffer.length / 1024).toFixed(
-        1
-      )}KB)`
+      `✅ Flux1: ${filename} (${(imageBuffer.length / 1024).toFixed(1)}KB)`
     );
   } catch (error) {
-    console.error("❌ VastAI Flux1 Error:", error.message);
-    sendError(res, error.message, 500);
-  }
-};
-
-/**
- * Handle file upload from XTTS v2 Coqui
- */
-const handleXttsUpload = async (req, res) => {
-  try {
-    const parts = await parseMultipart(req);
-
-    const prompt = parts.prompt ?? parts.text ?? "xtts-audio";
-    const voice = parts.voice ?? CONFIG.defaults.xtts.voice;
-    const file = parts.file ?? parts.audio;
-
-    if (!file?.data) {
-      return sendError(res, "No audio file provided");
-    }
-
-    const fileId = generateFileId();
-    const safeName = sanitizeFilename(prompt);
-    const timestamp = getTimestamp();
-    const ext = path.extname(file.filename || ".wav") || ".wav";
-    const filename = `xtts-${safeName}-${voice}-${timestamp}${ext}`;
-
-    const targetDir = path.join(
-      CONFIG.baseDir,
-      "BAMBIFICATION",
-      CONTENT_DIRS.audio
-    );
-    await fs.mkdir(targetDir, { recursive: true });
-
-    const filePath = path.join(targetDir, filename);
-    await fs.writeFile(filePath, file.data);
-
-    const metadata = {
-      id: fileId,
-      filename,
-      originalFilename: file.filename,
-      type: "audio",
-      source: "xtts-v2-coqui",
-      prompt,
-      voice,
-      size: file.data.length,
-      createdAt: new Date().toISOString(),
-      path: `/BAMBIFICATION/${CONTENT_DIRS.audio}/${filename}`,
-    };
-
-    fileRegistry.set(fileId, metadata);
-    await saveRegistry();
-
-    const baseUrl = `http://${req.headers.host}`;
-
-    sendJson(res, {
-      success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        metadata,
-      },
-    });
-
-    console.log(
-      `✅ XTTS Upload: ${filename} (${(file.data.length / 1024).toFixed(1)}KB)`
-    );
-  } catch (error) {
-    console.error("❌ XTTS Upload Error:", error);
-    sendError(res, error.message, 500);
-  }
-};
-
-/**
- * Handle file upload from Flux1
- */
-const handleFlux1Upload = async (req, res) => {
-  try {
-    const parts = await parseMultipart(req);
-
-    const prompt = parts.prompt ?? "flux1-image";
-    const seed = parts.seed ?? "random";
-    const steps = parts.steps ?? String(CONFIG.defaults.flux1.steps);
-    const file = parts.file ?? parts.image;
-
-    if (!file?.data) {
-      return sendError(res, "No image file provided");
-    }
-
-    const fileId = generateFileId();
-    const safeName = sanitizeFilename(prompt);
-    const timestamp = getTimestamp();
-    const ext = path.extname(file.filename || ".png") || ".png";
-    const filename = `flux1-${safeName}-s${seed}-${timestamp}${ext}`;
-
-    const targetDir = path.join(
-      CONFIG.baseDir,
-      "BAMBIFICATION",
-      CONTENT_DIRS.image
-    );
-    await fs.mkdir(targetDir, { recursive: true });
-
-    const filePath = path.join(targetDir, filename);
-    await fs.writeFile(filePath, file.data);
-
-    const metadata = {
-      id: fileId,
-      filename,
-      originalFilename: file.filename,
-      type: "image",
-      source: "flux1-schnell",
-      prompt,
-      seed,
-      steps,
-      size: file.data.length,
-      createdAt: new Date().toISOString(),
-      path: `/BAMBIFICATION/${CONTENT_DIRS.image}/${filename}`,
-    };
-
-    fileRegistry.set(fileId, metadata);
-    await saveRegistry();
-
-    const baseUrl = `http://${req.headers.host}`;
-
-    sendJson(res, {
-      success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        thumbnailUrl: `${baseUrl}/thumb/${fileId}`,
-        metadata,
-      },
-    });
-
-    console.log(
-      `✅ Flux1 Upload: ${filename} (${(file.data.length / 1024).toFixed(1)}KB)`
-    );
-  } catch (error) {
-    console.error("❌ Flux1 Upload Error:", error);
-    sendError(res, error.message, 500);
-  }
-};
-
-/**
- * Handle generic file upload with prompt-based naming
- */
-const handleGenericUpload = async (req, res) => {
-  try {
-    const parts = await parseMultipart(req);
-
-    const prompt = parts.prompt ?? parts.name ?? "uploaded-file";
-    const source = parts.source ?? "manual";
-    const file = parts.file;
-
-    if (!file?.data) {
-      return sendError(res, "No file provided");
-    }
-
-    const fileId = generateFileId();
-    const safeName = sanitizeFilename(prompt);
-    const timestamp = getTimestamp();
-    const ext = path.extname(file.filename || "");
-    const filename = `${safeName}-${timestamp}${ext}`;
-
-    // Determine content type from extension
-    let contentDir = CONTENT_DIRS.video; // default
-    if ([".mp3", ".wav", ".ogg", ".flac"].includes(ext.toLowerCase())) {
-      contentDir = CONTENT_DIRS.audio;
-    } else if (
-      [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext.toLowerCase())
-    ) {
-      contentDir = CONTENT_DIRS.image;
-    }
-
-    const targetDir = path.join(CONFIG.baseDir, "BAMBIFICATION", contentDir);
-    await fs.mkdir(targetDir, { recursive: true });
-
-    const filePath = path.join(targetDir, filename);
-    await fs.writeFile(filePath, file.data);
-
-    const metadata = {
-      id: fileId,
-      filename,
-      originalFilename: file.filename,
-      type: contentDir.toLowerCase().slice(0, -1),
-      source,
-      prompt,
-      size: file.data.length,
-      createdAt: new Date().toISOString(),
-      path: `/BAMBIFICATION/${contentDir}/${filename}`,
-    };
-
-    fileRegistry.set(fileId, metadata);
-    await saveRegistry();
-
-    const baseUrl = `http://${req.headers.host}`;
-
-    sendJson(res, {
-      success: true,
-      file: {
-        id: fileId,
-        filename,
-        url: `${baseUrl}/files/${fileId}/${filename}`,
-        directUrl: `${baseUrl}${metadata.path}`,
-        downloadUrl: `${baseUrl}/download/${fileId}`,
-        metadata,
-      },
-    });
-
-    console.log(
-      `✅ Upload: ${filename} (${(file.data.length / 1024).toFixed(1)}KB)`
-    );
-  } catch (error) {
-    console.error("❌ Upload Error:", error);
+    console.error("❌ Flux1 Error:", error.message);
     sendError(res, error.message, 500);
   }
 };
@@ -1305,51 +987,20 @@ const handleListFiles = async (req, res, params) => {
     total,
     offset,
     limit,
+    filters: {
+      type: type ?? "all",
+      source: source ?? "all",
+      search: search ?? null,
+    },
     files: files.map((f) => ({
-      ...f,
-      url: `${baseUrl}/files/${f.id}/${f.filename}`,
-      directUrl: `${baseUrl}${f.path}`,
+      id: f.id,
+      filename: f.filename,
+      type: f.type,
+      url: `${baseUrl}${f.path}`,
+      size: f.size,
+      createdAt: f.createdAt,
     })),
   });
-};
-
-/**
- * Generate URL from prompt (without uploading)
- */
-const handleGenerateUrl = async (req, res) => {
-  try {
-    const body = await parseJsonBody(req);
-    const {
-      prompt,
-      source = "generated",
-      type = "audio",
-      extension = ".wav",
-    } = body;
-
-    if (!prompt) {
-      return sendError(res, "Prompt is required");
-    }
-
-    const fileId = generateFileId();
-    const safeName = sanitizeFilename(prompt);
-    const timestamp = getTimestamp();
-    const filename = `${source}-${safeName}-${timestamp}${extension}`;
-
-    const baseUrl = `http://${req.headers.host}`;
-
-    sendJson(res, {
-      success: true,
-      generated: {
-        id: fileId,
-        filename,
-        suggestedPath: `/${CONTENT_DIRS[type] ?? "VIDEOS"}/${filename}`,
-        uploadUrl: `${baseUrl}/upload/${source}`,
-        expectedUrl: `${baseUrl}/files/${fileId}/${filename}`,
-      },
-    });
-  } catch (error) {
-    sendError(res, error.message, 500);
-  }
 };
 
 /**
@@ -1373,36 +1024,15 @@ const handleRequest = async (req, res) => {
 
   console.log(`${method} ${pathname}`);
 
-  // API Routes
-  if (method === "POST") {
-    // VastAI generation endpoints
-    if (pathname === "/vastai/xtts" || pathname === "/generate/xtts") {
-      return handleVastaiXtts(req, res);
-    }
-    if (pathname === "/vastai/flux1" || pathname === "/generate/flux1") {
-      return handleVastaiFlux1(req, res);
-    }
-
-    // Local TTS generation endpoint
-    if (pathname === "/local/xtts" || pathname === "/generate/local/xtts") {
-      return handleLocalXtts(req, res);
-    }
-
-    if (pathname === "/upload/xtts" || pathname === "/api/xtts") {
-      return handleXttsUpload(req, res);
-    }
-    if (pathname === "/upload/flux1" || pathname === "/api/flux1") {
-      return handleFlux1Upload(req, res);
-    }
-    if (pathname === "/upload" || pathname === "/api/upload") {
-      return handleGenericUpload(req, res);
-    }
-    if (pathname === "/api/generate-url") {
-      return handleGenerateUrl(req, res);
-    }
-  }
-
   if (method === "GET") {
+    // Simplified generation endpoints
+    if (pathname === "/generate/coqui") {
+      return handleGenerateCoqui(req, res);
+    }
+    if (pathname === "/generate/flux1") {
+      return handleGenerateFlux1(req, res);
+    }
+
     // List files
     if (pathname === "/api/files" || pathname === "/files") {
       return handleListFiles(req, res, url.searchParams);
@@ -1481,90 +1111,6 @@ const handleRequest = async (req, res) => {
       });
     }
 
-    // VastAI status check
-    if (pathname === "/vastai/status") {
-      const status = { xtts: null, flux1: null };
-
-      if (CONFIG.vastai.xttsEndpoint) {
-        try {
-          const res = await fetch(`${CONFIG.vastai.xttsEndpoint}/`, {
-            method: "GET",
-          });
-          status.xtts = {
-            endpoint: CONFIG.vastai.xttsEndpoint,
-            status: res.ok ? "online" : "error",
-          };
-        } catch (e) {
-          status.xtts = {
-            endpoint: CONFIG.vastai.xttsEndpoint,
-            status: "offline",
-            error: e.message,
-          };
-        }
-      }
-
-      if (CONFIG.vastai.flux1Endpoint) {
-        try {
-          const res = await fetch(`${CONFIG.vastai.flux1Endpoint}/`, {
-            method: "GET",
-          });
-          status.flux1 = {
-            endpoint: CONFIG.vastai.flux1Endpoint,
-            status: res.ok ? "online" : "error",
-          };
-        } catch (e) {
-          status.flux1 = {
-            endpoint: CONFIG.vastai.flux1Endpoint,
-            status: "offline",
-            error: e.message,
-          };
-        }
-      }
-
-      return sendJson(res, { success: true, vastai: status });
-    }
-
-    // Serve file by ID with custom filename
-    const fileMatch = pathname.match(/^\/files\/([a-f0-9]+)\/(.+)$/);
-    if (fileMatch) {
-      const [, fileId, requestedFilename] = fileMatch;
-      const metadata = fileRegistry.get(fileId);
-      if (metadata) {
-        const filePath = path.join(CONFIG.baseDir, metadata.path);
-        return serveFile(res, filePath, false, requestedFilename);
-      }
-      return sendError(res, "File not found", 404);
-    }
-
-    // Download by ID
-    const downloadMatch = pathname.match(/^\/download\/([a-f0-9]+)$/);
-    if (downloadMatch) {
-      const metadata = fileRegistry.get(downloadMatch[1]);
-      if (metadata) {
-        const filePath = path.join(CONFIG.baseDir, metadata.path);
-        return serveFile(res, filePath, true, metadata.filename);
-      }
-      return sendError(res, "File not found", 404);
-    }
-
-    // Get file metadata
-    const metaMatch = pathname.match(/^\/meta\/([a-f0-9]+)$/);
-    if (metaMatch) {
-      const metadata = fileRegistry.get(metaMatch[1]);
-      if (metadata) {
-        const baseUrl = `http://${req.headers.host}`;
-        return sendJson(res, {
-          success: true,
-          metadata: {
-            ...metadata,
-            url: `${baseUrl}/files/${metadata.id}/${metadata.filename}`,
-            directUrl: `${baseUrl}${metadata.path}`,
-          },
-        });
-      }
-      return sendError(res, "File not found", 404);
-    }
-
     // Serve static files from content directories
     if (pathname.startsWith("/BAMBIFICATION/")) {
       const filePath = path.join(CONFIG.baseDir, decodeURIComponent(pathname));
@@ -1576,61 +1122,23 @@ const handleRequest = async (req, res) => {
       const baseUrl = `http://${req.headers.host}`;
       return sendJson(res, {
         name: "BAMBIFICATION File Host",
-        version: "1.0.0",
+        version: "2.1.0",
         baseUrl: baseUrl,
-        tts: {
-          local: isLocalTtsAvailable()
-            ? "✓ Local Coqui TTS available"
-            : "✗ Not available (install dependencies)",
-          vastai:
-            CONFIG.vastai.xttsEndpoint ??
-            "not configured (set VASTAI_XTTS_URL)",
-        },
-        vastai: {
-          xtts:
-            CONFIG.vastai.xttsEndpoint ??
-            "not configured (set VASTAI_XTTS_URL)",
-          flux1:
-            CONFIG.vastai.flux1Endpoint ??
-            "not configured (set VASTAI_FLUX1_URL)",
-        },
         endpoints: {
-          "POST /local/xtts":
-            "Generate TTS using local Coqui TTS (JSON: {text, voice?, language?, speed?, format?})",
-          "POST /vastai/xtts":
-            "Generate TTS via VastAI XTTS (JSON: {text, voice?, language?, speed?})",
-          "POST /vastai/flux1":
-            "Generate image via VastAI Flux1 (JSON: {prompt, seed?, width?, height?, steps?})",
-          "GET /vastai/status": "Check VastAI endpoint status",
-          "POST /upload/xtts":
-            "Upload XTTS v2 Coqui audio with prompt-based naming",
-          "POST /upload/flux1": "Upload Flux1 image with prompt-based naming",
-          "POST /upload": "Generic file upload with prompt-based naming",
-          "POST /api/generate-url":
-            "Generate filename/URL from prompt without uploading",
-          "GET /api/files":
-            "List all files (supports ?type=audio|image|video&source=&search=)",
-          "GET /files/:id/:filename": "Serve file with custom filename in URL",
-          "GET /download/:id": "Download file with original filename",
-          "GET /meta/:id": "Get file metadata",
+          "GET /generate/coqui?prompt=...":
+            "Generate TTS audio (params: prompt, voice?, language?, speed?, format?)",
+          "GET /generate/flux1?prompt=...":
+            "Generate image (params: prompt, seed?, width?, height?, steps?)",
+          "GET /api/files": "List all files",
+          "GET /BAMBIFICATION/{type}/{filename}": "Access file directly",
           "GET /health": "Health check",
         },
         examples: {
-          health: `${baseUrl}/health`,
-          config: `${baseUrl}/config`,
+          generateTts: `${baseUrl}/generate/coqui?prompt=Hello%20world&language=en`,
+          generateImage: `${baseUrl}/generate/flux1?prompt=A%20beautiful%20sunset&width=1024&height=1024`,
           listFiles: `${baseUrl}/api/files`,
-          generateTts: `curl -X POST ${baseUrl}/local/xtts -H "Content-Type: application/json" -d '{"text":"Hello world","language":"en"}'`,
-          checkStatus: `${baseUrl}/vastai/status`,
+          health: `${baseUrl}/health`,
         },
-        sources: [
-          "local-xtts-coqui",
-          "vastai-xtts",
-          "vastai-flux1",
-          "xtts-v2-coqui",
-          "flux1-schnell",
-          "manual",
-        ],
-        types: ["audio", "image", "video"],
       });
     }
   }
@@ -1660,7 +1168,7 @@ const startServer = async () => {
       : null;
 
     console.log(`
-🚀 BAMBIFICATION File Host
+🚀 BAMBIFICATION File Host v2.1.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📡 ${localhostUrl}
 🌐 ${localNetworkUrl ?? "Network: Not available"}
@@ -1668,14 +1176,10 @@ const startServer = async () => {
       isLocalTtsAvailable() ? "✓ Local" : "✗"
     } ${CONFIG.vastai.xttsEndpoint ? "✓ VastAI" : "✗"}
 
-🎵 TTS:  POST ${localhostUrl}/local/xtts
-         POST ${localhostUrl}/vastai/xtts
-🖼️  IMG:  POST ${localhostUrl}/vastai/flux1
-� API:  GET  ${localhostUrl}/api/files
-         GET  ${localhostUrl}/files/:id/:filename
-         GET  ${localhostUrl}/download/:id
-📊 INFO: GET  ${localhostUrl}/health
-         GET  ${localhostUrl}/config
+🎵 TTS:   ${localhostUrl}/generate/coqui?prompt=YOUR_TEXT
+🖼️  IMG:   ${localhostUrl}/generate/flux1?prompt=YOUR_PROMPT
+📋 LIST:  ${localhostUrl}/api/files
+📊 INFO:  ${localhostUrl}/health
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         `);
   });
