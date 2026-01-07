@@ -48,8 +48,12 @@ loadEnvFile();
 // CONFIGURATION LOADER - Priority: ENV > config.json > system defaults
 // ============================================================================
 
+const SERVER_DIR = import.meta.dirname;
 const BASE_DIR = path.resolve(import.meta.dirname, "..");
 const CONFIG_PATH = path.join(BASE_DIR, "server", "config.json");
+
+// BAMBIFICATION directory is in server/, not parent
+const BAMBIFICATION_DIR = path.join(SERVER_DIR, "BAMBIFICATION");
 
 /**
  * Load config from JSON file if exists
@@ -284,11 +288,7 @@ const CONTENT_DIRS = {
 
 // In-memory metadata store (persisted to disk)
 let fileRegistry = new Map();
-const REGISTRY_PATH = path.join(
-  CONFIG.baseDir,
-  "BAMBIFICATION",
-  "registry.json"
-);
+const REGISTRY_PATH = path.join(BAMBIFICATION_DIR, "registry.json");
 
 /**
  * Sanitize prompt text into a valid filename
@@ -355,7 +355,7 @@ const scanExistingFiles = async () => {
   let addedCount = 0;
 
   for (const [type, dirName] of Object.entries(CONTENT_DIRS)) {
-    const dirPath = path.join(CONFIG.baseDir, "BAMBIFICATION", dirName);
+    const dirPath = path.join(BAMBIFICATION_DIR, dirName);
 
     try {
       if (!existsSync(dirPath)) {
@@ -460,14 +460,18 @@ const parseMultipart = async (req) => {
 };
 
 /**
- * Parse JSON body
+ * Parse JSON body with error handling
  */
 const parseJsonBody = async (req) => {
   const chunks = [];
   for await (const chunk of req) {
     chunks.push(chunk);
   }
-  return JSON.parse(Buffer.concat(chunks).toString());
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString());
+  } catch (error) {
+    throw new Error(`Invalid JSON: ${error.message}`);
+  }
 };
 
 /**
@@ -489,7 +493,7 @@ const sendError = (res, message, status = 400) => {
 };
 
 /**
- * Resolve voice path - can be relative to baseDir or absolute
+ * Resolve voice path - can be relative to BAMBIFICATION_DIR or absolute
  */
 const resolveVoicePath = (voice) => {
   if (!voice || voice === "default") {
@@ -499,8 +503,8 @@ const resolveVoicePath = (voice) => {
   if (path.isAbsolute(voice) || voice.startsWith("http")) {
     return voice;
   }
-  // Relative to baseDir
-  return path.join(CONFIG.baseDir, voice);
+  // Relative to BAMBIFICATION_DIR
+  return path.join(BAMBIFICATION_DIR, voice);
 };
 
 /**
@@ -743,8 +747,44 @@ const handleGenerateCoqui = async (req, res) => {
     const format =
       url.searchParams.get("format") || CONFIG.defaults.xtts.outputFormat;
 
+    // Validate inputs
     if (!prompt) {
       return sendError(res, "prompt parameter is required");
+    }
+    if (prompt.length > 1000) {
+      return sendError(res, "prompt must be 1000 characters or less", 400);
+    }
+
+    const validLanguages = [
+      "en",
+      "es",
+      "fr",
+      "de",
+      "it",
+      "pt",
+      "pl",
+      "tr",
+      "ru",
+      "nl",
+      "cs",
+      "ar",
+      "zh-cn",
+      "hu",
+      "ko",
+      "ja",
+      "hi",
+    ];
+    if (!validLanguages.includes(language)) {
+      return sendError(
+        res,
+        `Invalid language "${language}". Must be one of: ${validLanguages.join(
+          ", "
+        )}`,
+        400
+      );
+    }
+    if (speed < 0.5 || speed > 2.0) {
+      return sendError(res, "speed must be between 0.5 and 2.0", 400);
     }
 
     const outputFormat = format === "wav" ? "wav" : "mp3";
@@ -784,11 +824,7 @@ const handleGenerateCoqui = async (req, res) => {
     const ext = `.${actualFormat}`;
     const filename = `coqui-${safeName}-${voiceName}-${timestamp}${ext}`;
 
-    const targetDir = path.join(
-      CONFIG.baseDir,
-      "BAMBIFICATION",
-      CONTENT_DIRS.audio
-    );
+    const targetDir = path.join(BAMBIFICATION_DIR, CONTENT_DIRS.audio);
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -848,8 +884,22 @@ const handleGenerateFlux1 = async (req, res) => {
       url.searchParams.get("steps") || CONFIG.defaults.flux1.steps
     );
 
+    // Validate inputs
     if (!prompt) {
       return sendError(res, "prompt parameter is required");
+    }
+    if (prompt.length > 1000) {
+      return sendError(res, "prompt must be 1000 characters or less", 400);
+    }
+    if (width < 256 || width > 2048 || height < 256 || height > 2048) {
+      return sendError(
+        res,
+        "width and height must be between 256 and 2048",
+        400
+      );
+    }
+    if (steps < 1 || steps > 50) {
+      return sendError(res, "steps must be between 1 and 50", 400);
     }
 
     console.log(`🖼️ Flux1: "${prompt.slice(0, 50)}..." ${width}x${height}`);
@@ -867,11 +917,7 @@ const handleGenerateFlux1 = async (req, res) => {
     const timestamp = getTimestamp();
     const filename = `flux1-${safeName}-s${actualSeed}-${timestamp}.png`;
 
-    const targetDir = path.join(
-      CONFIG.baseDir,
-      "BAMBIFICATION",
-      CONTENT_DIRS.image
-    );
+    const targetDir = path.join(BAMBIFICATION_DIR, CONTENT_DIRS.image);
     await fs.mkdir(targetDir, { recursive: true });
 
     const filePath = path.join(targetDir, filename);
@@ -1051,9 +1097,8 @@ const handleRequest = async (req, res) => {
           health: `${baseUrl}/health`,
           config: `${baseUrl}/config`,
           files: `${baseUrl}/api/files`,
-          localTts: `${baseUrl}/local/xtts`,
-          vastaiTts: `${baseUrl}/vastai/xtts`,
-          vastaiFlux: `${baseUrl}/vastai/flux1`,
+          generateCoqui: `${baseUrl}/generate/coqui?prompt=YOUR_TEXT&language=en`,
+          generateFlux1: `${baseUrl}/generate/flux1?prompt=YOUR_PROMPT`,
         },
         system: {
           hostname: CONFIG.system.hostname,
@@ -1113,7 +1158,8 @@ const handleRequest = async (req, res) => {
 
     // Serve static files from content directories
     if (pathname.startsWith("/BAMBIFICATION/")) {
-      const filePath = path.join(CONFIG.baseDir, decodeURIComponent(pathname));
+      const relPath = decodeURIComponent(pathname.slice(1)); // Remove leading /
+      const filePath = path.join(SERVER_DIR, relPath);
       return serveFile(res, filePath);
     }
 
